@@ -1,7 +1,7 @@
 import type {ComponentValue, ComponentValueType, ExhibitComponent} from "./exhibit-component.ts";
 
 export type MetaDependencyCondition = 'SOME' | 'NOT_IN' | 'ALL'
-export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies' | 'masterField'>
+export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies'>
 
 export interface MetaConfig {
     [field: string]: MetaKeyConfig
