@@ -18,7 +18,7 @@ app.config.globalProperties.$guava3shome = {
                 component: () => import('../lib/component/G3Input.vue'),
                 required: 1,
                 order: 1,
-                metaProps: {
+                componentProps: {
                     valueType: 'STRING',
                     placeholder: 'Please input name',
                     type: 'number'
@@ -33,7 +33,7 @@ app.config.globalProperties.$guava3shome = {
                 component: () => import('../lib/component/G3Input.vue'),
                 required: 1,
                 order: 1,
-                metaProps: {
+                componentProps: {
                     valueType: 'STRING',
                     placeholder: 'Please input password',
                     type: 'password'
@@ -48,7 +48,7 @@ app.config.globalProperties.$guava3shome = {
                 component: () => import('../lib/component/G3Input.vue'),
                 required: 1,
                 order: 1,
-                metaProps: {
+                componentProps: {
                     valueType: 'STRING',
                     placeholder: 'Please select color',
                     type: 'color'

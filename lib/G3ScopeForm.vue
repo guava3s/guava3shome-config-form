@@ -9,7 +9,7 @@
           </div>
 
           <template v-if="item.display">
-            <component :is="renderComponentMap[item.id]" v-model="scopeValues[item.field]" v-bind="item.metaProps"></component>
+            <component :is="renderComponentMap[item.id]" v-model="scopeValues[item.field]" v-bind="item.componentProps"></component>
           </template>
 
           <!-- 优先使用 数据字典 value-->
@@ -431,10 +431,10 @@ export default defineComponent({
             .map(([key, obj]) => {
               // 根据前端显示类型提供默认值
               let renderValue = props.scopeData[key]
-              const metaProps = obj.componentProps;
-              if (!renderValue && metaProps.valueType) {
-                metaProps.defaultValue = VALUE_TYPE_MAP[metaProps.valueType](metaProps.defaultValue)
-                renderValue = VALUE_TYPE_MAP[metaProps.valueType](renderValue ?? '') || metaProps.defaultValue
+              const componentProps = obj.componentProps;
+              if (!renderValue && componentProps.valueType) {
+                componentProps.defaultValue = VALUE_TYPE_MAP[componentProps.valueType](componentProps.defaultValue)
+                renderValue = VALUE_TYPE_MAP[componentProps.valueType](renderValue ?? '') || componentProps.defaultValue
               }
               scopeValues.value[key] = renderValue
               return obj
