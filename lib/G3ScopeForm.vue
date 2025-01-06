@@ -267,7 +267,7 @@
           <!--                :immediateInvalidate="immediateInvalidate(item.field)"/>-->
           <!--          </template>-->
 
-          <div v-if="validator(item)" class="g3-scope-form-error">{{ item.metaProps.placeholder }}</div>
+          <div v-if="validator(item)" class="g3-scope-form-error">{{ item.componentProps.placeholder }}</div>
         </div>
         <div v-if="!readonly">
           <button @click="submit" subject="primary">
@@ -431,7 +431,7 @@ export default defineComponent({
             .map(([key, obj]) => {
               // 根据前端显示类型提供默认值
               let renderValue = props.scopeData[key]
-              const metaProps = obj.metaProps;
+              const metaProps = obj.componentProps;
               if (!renderValue && metaProps.valueType) {
                 metaProps.defaultValue = VALUE_TYPE_MAP[metaProps.valueType](metaProps.defaultValue)
                 renderValue = VALUE_TYPE_MAP[metaProps.valueType](renderValue ?? '') || metaProps.defaultValue

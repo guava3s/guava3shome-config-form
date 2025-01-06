@@ -16,15 +16,17 @@ export interface MetaKeyConfig {
     disable: number
     required: number
     order: number
-    metaProps: {
-        placeholder: string
-        options?: MetaOptionConfig[]
-        defaultValue?: ComponentValue
-        valueType?: ComponentValueType
-        [key: string]: any
-    }
+    componentProps: MetaKeyComponentProps
     readonly component: () => Promise<Component>
     readonly dependencies?: MetaConfigDependency[]
+}
+
+export interface MetaKeyComponentProps {
+    placeholder: string
+    options?: MetaOptionConfig[]
+    defaultValue?: ComponentValue
+    valueType?: ComponentValueType
+    [key: string]: any
 }
 
 export interface MetaOptionConfig {
