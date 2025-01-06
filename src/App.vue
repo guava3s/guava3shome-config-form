@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import G3ScopeForm from "../lib/G3ScopeForm.vue";
 </script>
 
 <template>
-  <div></div>
+  <div>
+    <G3ScopeForm scope-code="scope1"></G3ScopeForm>
+  </div>
 </template>
 
 <style scoped>

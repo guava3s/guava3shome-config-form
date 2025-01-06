@@ -16,5 +16,4 @@ export function getNormalProps() {
             default: false
         }
     }
-
 }

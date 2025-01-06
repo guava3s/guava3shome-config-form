@@ -1,4 +1,5 @@
 import type {ComponentValue, ComponentValueType, ExhibitComponent} from "./exhibit-component.ts";
+import type {Component} from "@vue/runtime-core";
 
 export type MetaDependencyCondition = 'SOME' | 'NOT_IN' | 'ALL'
 export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies'>
@@ -8,19 +9,21 @@ export interface MetaConfig {
 }
 
 export interface MetaKeyConfig {
-    id: string
+    readonly id: string
     title: string
     field: string
     display: number
-    readonly: number
-    type: ExhibitComponent
+    disable: number
     required: number
-    options?: MetaOptionConfig[]
-    placeholder: string
     order: number
-    defaultValue?: ComponentValue
-    valueType?: ComponentValueType
-
+    metaProps: {
+        placeholder: string
+        options?: MetaOptionConfig[]
+        defaultValue?: ComponentValue
+        valueType?: ComponentValueType
+        [key: string]: any
+    }
+    readonly component: () => Promise<Component>
     readonly dependencies?: MetaConfigDependency[]
 }
 

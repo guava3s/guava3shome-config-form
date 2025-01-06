@@ -8,273 +8,250 @@
             <span>{{ item.title }}</span>
           </div>
 
-          <template v-if="item.display && item.type === 'INPUT'">
-            <G3Input v-model="scopeValues[item.field]"
-                     :placeholder="item.placeholder"
-                     :disabled="item.readonly || readonly"/>
-          </template>
-
-          <template v-else-if="item.display && item.type === 'INPUT_NUMBER'">
-            <G3Input v-model="scopeValues[item.field]"
-                     type="number"
-                     :placeholder="item.placeholder"
-                     :disabled="item.readonly || readonly"/>
-          </template>
-
-          <template v-else-if="item.display && item.type === 'PASSWORD'">
-            <G3Input v-model="scopeValues[item.field]"
-                     type="password"
-                     :placeholder="item.placeholder"
-                     :disabled="item.readonly || readonly"/>
-          </template>
-
-          <template v-else-if="item.display && item.type === 'COLOR'">
-            <G3Input v-model="scopeValues[item.field]"
-                     type="color"
-                     :placeholder="item.placeholder"
-                     :disabled="item.readonly || readonly"/>
+          <template v-if="item.display">
+            <component :is="renderComponentMap[item.id]" v-model="scopeValues[item.field]" v-bind="item.metaProps"></component>
           </template>
 
           <!-- 优先使用 数据字典 value-->
-          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_VALUE'">
-            <!--            <el-select v-model="scopeValues[item.field]"-->
-            <!--                       clearable-->
-            <!--                       filterable-->
-            <!--                       :placeholder="item.placeholder"-->
-            <!--                       :disabled="!!item.readonly || readonly">-->
-            <!--              <el-option v-for="e in item.options"-->
-            <!--                         :key="e.id"-->
-            <!--                         :label="renderSelectLabel(e)"-->
-            <!--                         :value="e.value"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_VALUE'">-->
+          <!--            <el-select v-model="scopeValues[item.field]"-->
+          <!--                       clearable-->
+          <!--                       filterable-->
+          <!--                       :placeholder="item.placeholder"-->
+          <!--                       :disable="!!item.readonly || readonly">-->
+          <!--              <el-option v-for="e in item.options"-->
+          <!--                         :key="e.id"-->
+          <!--                         :label="renderSelectLabel(e)"-->
+          <!--                         :value="e.value"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_MULTI_VALUE'">
-            <!--            <el-select-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                multiple-->
-            <!--                collapse-tags-->
-            <!--                collapse-tags-tooltip-->
-            <!--                clearable-->
-            <!--                filterable-->
-            <!--                :max-collapse-tags="5"-->
-            <!--                :disabled="!!item.readonly || readonly"-->
-            <!--                :placeholder="item.placeholder">-->
-            <!--              <el-option v-for="e in item.options"-->
-            <!--                         :key="e.id"-->
-            <!--                         :label="renderSelectLabel(e)"-->
-            <!--                         :value="e.value"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_MULTI_VALUE'">-->
+          <!--            <el-select-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                multiple-->
+          <!--                collapse-tags-->
+          <!--                collapse-tags-tooltip-->
+          <!--                clearable-->
+          <!--                filterable-->
+          <!--                :max-collapse-tags="5"-->
+          <!--                :disable="!!item.readonly || readonly"-->
+          <!--                :placeholder="item.placeholder">-->
+          <!--              <el-option v-for="e in item.options"-->
+          <!--                         :key="e.id"-->
+          <!--                         :label="renderSelectLabel(e)"-->
+          <!--                         :value="e.value"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
           <!-- 使用数据字典值，且显示时使用Number排序-->
-          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_VALUE_SORT_NUMBER'">
-            <!--            <el-select-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                clearable-->
-            <!--                filterable-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--                :disabled="!!item.readonly || readonly">-->
-            <!--              <el-option v-for="e in item.options.sort((a,b)=>Number(a.value)-Number(b.value))"-->
-            <!--                         :key="e.id"-->
-            <!--                         :label="renderSelectLabel(e)"-->
-            <!--                         :value="e.value"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_VALUE_SORT_NUMBER'">-->
+          <!--            <el-select-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                clearable-->
+          <!--                filterable-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--                :disable="!!item.readonly || readonly">-->
+          <!--              <el-option v-for="e in item.options.sort((a,b)=>Number(a.value)-Number(b.value))"-->
+          <!--                         :key="e.id"-->
+          <!--                         :label="renderSelectLabel(e)"-->
+          <!--                         :value="e.value"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_HIDE_VALUE_SORT_NUMBER'">
-            <!--            <el-select-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                clearable-->
-            <!--                filterable-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--                :disabled="!!item.readonly || readonly">-->
-            <!--              <el-option-->
-            <!--                  v-for="e in item.options.sort((a,b)=>Number(a.hideData)-Number(b.hideData))"-->
-            <!--                  :key="e.id"-->
-            <!--                  :label="renderSelectLabel(e)"-->
-            <!--                  :value="e.value"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_HIDE_VALUE_SORT_NUMBER'">-->
+          <!--            <el-select-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                clearable-->
+          <!--                filterable-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--                :disable="!!item.readonly || readonly">-->
+          <!--              <el-option-->
+          <!--                  v-for="e in item.options.sort((a,b)=>Number(a.hideData)-Number(b.hideData))"-->
+          <!--                  :key="e.id"-->
+          <!--                  :label="renderSelectLabel(e)"-->
+          <!--                  :value="e.value"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
 
-          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_ID'">
-            <!--            <el-select-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                clearable-->
-            <!--                filterable-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--                :disabled="!!item.readonly || readonly">-->
-            <!--              <el-option v-for="e in item.options"-->
-            <!--                         :key="e.id"-->
-            <!--                         :label="e.name"-->
-            <!--                         :value="e.id"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_ID'">-->
+          <!--            <el-select-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                clearable-->
+          <!--                filterable-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--                :disable="!!item.readonly || readonly">-->
+          <!--              <el-option v-for="e in item.options"-->
+          <!--                         :key="e.id"-->
+          <!--                         :label="e.name"-->
+          <!--                         :value="e.id"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_MULTI_ID'">
-            <!--            <el-select-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                multiple-->
-            <!--                collapse-tags-->
-            <!--                collapse-tags-tooltip-->
-            <!--                clearable-->
-            <!--                filterable-->
-            <!--                :max-collapse-tags="5"-->
-            <!--                :disabled="!!item.readonly || readonly"-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--            >-->
-            <!--              <el-option v-for="e in item.options"-->
-            <!--                         :key="e.id"-->
-            <!--                         :label="e.name"-->
-            <!--                         :value="e.id"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'SELECT_BY_DICT_MULTI_ID'">-->
+          <!--            <el-select-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                multiple-->
+          <!--                collapse-tags-->
+          <!--                collapse-tags-tooltip-->
+          <!--                clearable-->
+          <!--                filterable-->
+          <!--                :max-collapse-tags="5"-->
+          <!--                :disable="!!item.readonly || readonly"-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--            >-->
+          <!--              <el-option v-for="e in item.options"-->
+          <!--                         :key="e.id"-->
+          <!--                         :label="e.name"-->
+          <!--                         :value="e.id"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_SELECT_BY_DICT_VALUE'">
-            <!--            <el-select-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--                clearable-->
-            <!--                filterable-->
-            <!--                :disabled="!!item.readonly || readonly">-->
-            <!--              <el-option v-for="e in customOptions[item.field]"-->
-            <!--                         :key="e.id"-->
-            <!--                         :label="e.name"-->
-            <!--                         :value="e.value"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_SELECT_BY_DICT_VALUE'">-->
+          <!--            <el-select-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--                clearable-->
+          <!--                filterable-->
+          <!--                :disable="!!item.readonly || readonly">-->
+          <!--              <el-option v-for="e in customOptions[item.field]"-->
+          <!--                         :key="e.id"-->
+          <!--                         :label="e.name"-->
+          <!--                         :value="e.value"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_SELECT_BY_ID'">
-            <!--            <el-select-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--                clearable-->
-            <!--                filterable-->
-            <!--                :disabled="!!item.readonly || readonly">-->
-            <!--              <el-option v-for="e in customOptions[item.field]"-->
-            <!--                         :key="e.id"-->
-            <!--                         :label="e.name"-->
-            <!--                         :value="e.id"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_SELECT_BY_ID'">-->
+          <!--            <el-select-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--                clearable-->
+          <!--                filterable-->
+          <!--                :disable="!!item.readonly || readonly">-->
+          <!--              <el-option v-for="e in customOptions[item.field]"-->
+          <!--                         :key="e.id"-->
+          <!--                         :label="e.name"-->
+          <!--                         :value="e.id"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_SELECT_BY_MULTI_ID'">
-            <!--            <el-select-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                multiple-->
-            <!--                collapse-tags-->
-            <!--                collapse-tags-tooltip-->
-            <!--                clearable-->
-            <!--                filterable-->
-            <!--                :max-collapse-tags="5"-->
-            <!--                :disabled="!!item.readonly || readonly"-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--            >-->
-            <!--              <el-option v-for="item in customOptions[item.field]"-->
-            <!--                         :key="item.id"-->
-            <!--                         :label="item.name"-->
-            <!--                         :value="item.id"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_SELECT_BY_MULTI_ID'">-->
+          <!--            <el-select-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                multiple-->
+          <!--                collapse-tags-->
+          <!--                collapse-tags-tooltip-->
+          <!--                clearable-->
+          <!--                filterable-->
+          <!--                :max-collapse-tags="5"-->
+          <!--                :disable="!!item.readonly || readonly"-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--            >-->
+          <!--              <el-option v-for="item in customOptions[item.field]"-->
+          <!--                         :key="item.id"-->
+          <!--                         :label="item.name"-->
+          <!--                         :value="item.id"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_SELECT_BY_MULTI_VALUE'">
-            <!--            <el-select-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                multiple-->
-            <!--                collapse-tags-->
-            <!--                collapse-tags-tooltip-->
-            <!--                clearable-->
-            <!--                filterable-->
-            <!--                :max-collapse-tags="5"-->
-            <!--                :disabled="!!item.readonly || readonly"-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--            >-->
-            <!--              <el-option v-for="item in customOptions[item.field]"-->
-            <!--                         :key="item.id"-->
-            <!--                         :label="item.name"-->
-            <!--                         :value="item.value"-->
-            <!--              />-->
-            <!--            </el-select>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_SELECT_BY_MULTI_VALUE'">-->
+          <!--            <el-select-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                multiple-->
+          <!--                collapse-tags-->
+          <!--                collapse-tags-tooltip-->
+          <!--                clearable-->
+          <!--                filterable-->
+          <!--                :max-collapse-tags="5"-->
+          <!--                :disable="!!item.readonly || readonly"-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--            >-->
+          <!--              <el-option v-for="item in customOptions[item.field]"-->
+          <!--                         :key="item.id"-->
+          <!--                         :label="item.name"-->
+          <!--                         :value="item.value"-->
+          <!--              />-->
+          <!--            </el-select>-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type ==='RATE'">
-            <!--                     @change="stagingRate($event, item.name)"-->
-            <!--            <el-rate-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                show-text-->
-            <!--                :colors="['#99A9BF','#acb44b','#ECC320', '#DAD117', '#FFEA00']"-->
-            <!--                :texts="item.options"-->
-            <!--                :max="item.options.length"-->
-            <!--                :disabled="!!item.readonly || readonly"-->
+          <!--          <template v-else-if="item.display && item.type ==='RATE'">-->
+          <!--                     @change="stagingRate($event, item.name)"-->
+          <!--            <el-rate-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                show-text-->
+          <!--                :colors="['#99A9BF','#acb44b','#ECC320', '#DAD117', '#FFEA00']"-->
+          <!--                :texts="item.options"-->
+          <!--                :max="item.options.length"-->
+          <!--                :disable="!!item.readonly || readonly"-->
 
-            <!--            />-->
-          </template>
+          <!--            />-->
+          <!--          </template>-->
 
           <!-- 滑块-->
-          <template v-else-if="item.display && item.type ==='SLIDER'">
-            <!--            <el-slider-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                :disabled="!!item.readonly || readonly"/>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type ==='SLIDER'">-->
+          <!--            <el-slider-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                :disable="!!item.readonly || readonly"/>-->
+          <!--          </template>-->
 
           <!-- 该type的valueType默认应为STRING-->
-          <template v-else-if="item.display && item.type === 'RADIO'">
-            <!--            <el-radio-group-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                :disabled="!!item.readonly || readonly">-->
-            <!--              <el-radio v-for="e in item.options" :key="e.id" :value="String(e.value)"-->
-            <!--                        size="large">-->
-            <!--                {{ e.name }}-->
-            <!--              </el-radio>-->
-            <!--            </el-radio-group>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'RADIO'">-->
+          <!--            <el-radio-group-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                :disable="!!item.readonly || readonly">-->
+          <!--              <el-radio v-for="e in item.options" :key="e.id" :value="String(e.value)"-->
+          <!--                        size="large">-->
+          <!--                {{ e.name }}-->
+          <!--              </el-radio>-->
+          <!--            </el-radio-group>-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'TEXTAREA'">
-            <!--            <el-input-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                type="textarea"-->
-            <!--                :disabled="!!item.readonly || readonly"-->
-            <!--                :autosize="true"-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--            />-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'TEXTAREA'">-->
+          <!--            <el-input-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                type="textarea"-->
+          <!--                :disable="!!item.readonly || readonly"-->
+          <!--                :autosize="true"-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--            />-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'TREE_CASCADE'">
-            <!--            <el-cascader-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--                :disabled="item.readonly || readonly"-->
-            <!--                :options="item.options"-->
-            <!--            />-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'TREE_CASCADE'">-->
+          <!--            <el-cascader-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--                :disable="item.readonly || readonly"-->
+          <!--                :options="item.options"-->
+          <!--            />-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_TREE_CASCADE'">
-            <!--            <el-cascader-->
-            <!--                v-model="scopeValues[item.field]"-->
-            <!--                :placeholder="item.placeholder"-->
-            <!--                :disabled="item.readonly || readonly"-->
-            <!--                :props="{emitPath: false}"-->
-            <!--                :options="customOptions[item.field]"-->
-            <!--            />-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'CUSTOM_OPTION_TREE_CASCADE'">-->
+          <!--            <el-cascader-->
+          <!--                v-model="scopeValues[item.field]"-->
+          <!--                :placeholder="item.placeholder"-->
+          <!--                :disable="item.readonly || readonly"-->
+          <!--                :props="{emitPath: false}"-->
+          <!--                :options="customOptions[item.field]"-->
+          <!--            />-->
+          <!--          </template>-->
 
-          <template v-else-if="item.display && item.type === 'CHECKBOX'">
-            <!--            <el-checkbox-group-->
-            <!--                v-model="scopeValues[item.field]">-->
-            <!--              <el-checkbox v-for="(e,i) in item.options" :key="i" :label="e.name"-->
-            <!--                           :value="e.value"/>-->
-            <!--            </el-checkbox-group>-->
-          </template>
+          <!--          <template v-else-if="item.display && item.type === 'CHECKBOX'">-->
+          <!--            <el-checkbox-group-->
+          <!--                v-model="scopeValues[item.field]">-->
+          <!--              <el-checkbox v-for="(e,i) in item.options" :key="i" :label="e.name"-->
+          <!--                           :value="e.value"/>-->
+          <!--            </el-checkbox-group>-->
+          <!--          </template>-->
 
           <!--          <template v-else-if="item.display && item.type === 'TEXTAREA_JSON'">-->
           <!--            <G3JsonTextarea-->
@@ -290,7 +267,7 @@
           <!--                :immediateInvalidate="immediateInvalidate(item.field)"/>-->
           <!--          </template>-->
 
-          <div v-if="validator(item)" class="g3-scope-form-error">{{ item.placeholder }}</div>
+          <div v-if="validator(item)" class="g3-scope-form-error">{{ item.metaProps.placeholder }}</div>
         </div>
         <div v-if="!readonly">
           <button @click="submit" subject="primary">
@@ -306,7 +283,16 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, getCurrentInstance, nextTick, ref, watch} from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  defineComponent,
+  getCurrentInstance,
+  nextTick,
+  ref,
+  shallowRef,
+  watch
+} from "vue";
 import type {
   MetaConfig,
   MetaConfigDependency,
@@ -316,7 +302,9 @@ import type {
   SlaveFieldValueMap
 } from "./typings/meta-config.ts";
 import {containKey} from "./util/type-check.ts";
-import G3Input from "./component/G3Input.vue";
+import {defaultComponentTypeMap} from "./component";
+import type {ShallowRef} from "@vue/reactivity";
+
 
 const VALUE_TYPE_MAP = {
   'NUMBER': (value: any) => Number(value),
@@ -327,12 +315,18 @@ const VALUE_TYPE_MAP = {
 
 
 export default defineComponent({
-  components: {G3Input},
   props: {
     // 作用域代码
     scopeCode: {
       type: String,
       required: true,
+    },
+    scopeConfig: {
+      type: Object,
+      required: false,
+      default: () => {
+        return {}
+      }
     },
     readonly: {
       type: Boolean,
@@ -345,12 +339,6 @@ export default defineComponent({
       required: false,
       default: () => {
         return {}
-      }
-    },
-    submitForm: {
-      type: Function,
-      required: false,
-      default: () => {
       }
     },
     /**
@@ -382,6 +370,12 @@ export default defineComponent({
         return {}
       }
     },
+    submitForm: {
+      type: Function,
+      required: false,
+      default: () => {
+      }
+    },
     resetForm: {
       type: Function,
       required: false,
@@ -404,21 +398,28 @@ export default defineComponent({
     const currentInstance = getCurrentInstance()
     // 配置显示信息集合
     const scopeKeyDetailList = ref<MetaKeyConfig[]>([])
+    const renderComponentMap = ref<Record<string, ShallowRef>>({})
     // 表单问题答案对象
     const scopeValues = ref<Record<string, any>>({})
     // 配置字段依赖对象
     const scopeValuesDeps = ref<Record<string, MetaConfigDependency[]>>({})
     // 原始配置字段依赖对象
     const originScopeValuesDeps = ref<Record<string, OmitDepMetaKeyConfig>>({})
+    const scopeComponentMeta = ref({})
+    const componentTypeMap = Object.assign(defaultComponentTypeMap, currentInstance?.appContext.config.globalProperties.$guava3shome.componentTypeMap);
 
     // 是否需要监听值变化
     watch(props, (newValue) => {
       if (newValue.scopeCode) {
         // 固定接口
-        const scopeElement: MetaConfig = currentInstance?.appContext.config.globalProperties.$guava3shomeScope[newValue.scopeCode]
+        const scopeElement: MetaConfig = currentInstance?.appContext.config.globalProperties.$guava3shome.scopeConfig[newValue.scopeCode] || {}
+        Object.assign(scopeElement, props.scopeConfig)
 
         for (const field in scopeElement) {
-          const {dependencies, ...otherField} = scopeElement[field]
+          let element = scopeElement[field];
+          const {dependencies, ...otherField} = element
+          renderComponentMap.value[element.id] = shallowRef(defineAsyncComponent(otherField.component))
+
           if (dependencies?.length) {
             dependencies.sort((a: MetaConfigDependency, b: MetaConfigDependency) => b.priority - a.priority)
             scopeValuesDeps.value[field] = dependencies
@@ -430,9 +431,10 @@ export default defineComponent({
             .map(([key, obj]) => {
               // 根据前端显示类型提供默认值
               let renderValue = props.scopeData[key]
-              if (!renderValue && obj.valueType) {
-                obj.defaultValue = VALUE_TYPE_MAP[obj.valueType](obj.defaultValue)
-                renderValue = VALUE_TYPE_MAP[obj.valueType](renderValue ?? '') || obj.defaultValue
+              const metaProps = obj.metaProps;
+              if (!renderValue && metaProps.valueType) {
+                metaProps.defaultValue = VALUE_TYPE_MAP[metaProps.valueType](metaProps.defaultValue)
+                renderValue = VALUE_TYPE_MAP[metaProps.valueType](renderValue ?? '') || metaProps.defaultValue
               }
               scopeValues.value[key] = renderValue
               return obj
@@ -442,7 +444,6 @@ export default defineComponent({
             .map(item => triggerReset(item).data)
       }
     }, {immediate: true, deep: true})
-
 
     function useDisabledEffect() {
       // 禁用数据影响判定数组
@@ -552,9 +553,9 @@ export default defineComponent({
     })
 
     // 校验是否无效
-    function validate(item: MetaKeyConfig) {
+    function validate(item: MetaKeyConfig): boolean {
       const fieldValue = scopeValues.value[item.field];
-      return (item.required && (['null', 'undefined', ''].includes(String(fieldValue))))
+      return (!!item.required && (['null', 'undefined', ''].includes(String(fieldValue))))
     }
 
     // 立即校验字段所属是否无效的设置回调
@@ -564,7 +565,7 @@ export default defineComponent({
     //   }
     // }
 
-    function submit() {
+    function submit(): void {
       // 提交前校验
       if (scopeKeyDetailList.value.some(validator.value)) {
         // ElMessage.warning('请完善表单')
@@ -575,12 +576,12 @@ export default defineComponent({
       props.submitForm(scopeValues.value, props.scopeCode)
     }
 
-    function resetScopeForm() {
+    function resetScopeForm(): void {
       Object.keys(scopeValues.value).forEach(key => scopeValues.value[key] = '')
       props.resetForm(scopeValues.value)
     }
 
-    function renderSelectLabel(e: MetaOptionConfig) {
+    function renderSelectLabel(e: MetaOptionConfig): string {
       return e.name + (e.hideData ? `(${e.hideData})` : '')
     }
 
@@ -615,10 +616,13 @@ export default defineComponent({
 
     return {
       scopeKeyDetailList,
+      componentTypeMap,
+      scopeComponentMeta,
       scopeValues,
       validator,
       submit,
       resetScopeForm,
+      renderComponentMap
       // renderSelectLabel
     }
   }

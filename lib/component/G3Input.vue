@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {getNormalProps} from "../runtime/props.ts";
+import {getNormalProps} from "./props.ts";
 
 const inputValue = defineModel()
 const props = defineProps(Object.assign(getNormalProps(), {
@@ -14,7 +14,7 @@ const props = defineProps(Object.assign(getNormalProps(), {
 
 <template>
   <div class="g3-input-wrapper">
-    <input v-model="inputValue" :placeholder="props.placeholder" :disabled="!!props.disable" :type="props.type"/>
+    <input v-model="inputValue" :placeholder="props.placeholder" :disabled="props.disable" :type="props.type"/>
   </div>
 </template>
 
