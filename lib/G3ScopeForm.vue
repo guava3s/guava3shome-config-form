@@ -450,7 +450,10 @@ export default defineComponent({
     }, {immediate: true, deep: true})
 
     function checkScopeConfig(scopeElement: MetaConfig): void {
-
+      const map = Object.values(scopeElement).map(item => item.id)
+      if (new Set(map).size !== map.length) {
+        throw new Error("There are field configuration items with the same 'id' in scopeConfig.")
+      }
     }
 
     function useDisabledEffect() {
