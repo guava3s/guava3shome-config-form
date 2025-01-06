@@ -12,9 +12,8 @@ export interface MetaKeyConfig {
     readonly id: string
     title: string
     field: string
-    display: number
-    disable: number
-    required: number
+    display: boolean
+    required: boolean
     order: number
     componentProps: MetaKeyComponentProps
     readonly component: () => Promise<Component>
@@ -26,6 +25,7 @@ export interface MetaKeyComponentProps {
     options?: MetaOptionConfig[]
     defaultValue?: ComponentValue
     valueType?: ComponentValueType
+    disable: boolean
     [key: string]: any
 }
 

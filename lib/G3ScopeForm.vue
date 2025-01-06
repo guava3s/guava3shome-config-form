@@ -9,7 +9,8 @@
           </div>
 
           <template v-if="item.display">
-            <component :is="renderComponentMap[item.id]" v-model="scopeValues[item.field]" v-bind="item.componentProps"></component>
+            <component :is="renderComponentMap[item.id]" v-model="scopeValues[item.field]"
+                       v-bind="item.componentProps"></component>
           </template>
 
           <!-- 优先使用 数据字典 value-->
@@ -407,18 +408,21 @@ export default defineComponent({
     const originScopeValuesDeps = ref<Record<string, OmitDepMetaKeyConfig>>({})
     const scopeComponentMeta = ref({})
     const componentTypeMap = Object.assign(defaultComponentTypeMap, currentInstance?.appContext.config.globalProperties.$guava3shome.componentTypeMap);
+    const scopeElement: MetaConfig = currentInstance?.appContext.config.globalProperties.$guava3shome.scopeConfig[props.scopeCode] || {}
 
     // 是否需要监听值变化
     watch(props, (newValue) => {
       if (newValue.scopeCode) {
         // 固定接口
-        const scopeElement: MetaConfig = currentInstance?.appContext.config.globalProperties.$guava3shome.scopeConfig[newValue.scopeCode] || {}
         Object.assign(scopeElement, props.scopeConfig)
+
+        checkScopeConfig(scopeElement)
 
         for (const field in scopeElement) {
           let element = scopeElement[field];
           const {dependencies, ...otherField} = element
           renderComponentMap.value[element.id] = shallowRef(defineAsyncComponent(otherField.component))
+          element.componentProps.disable ||= props.readonly
 
           if (dependencies?.length) {
             dependencies.sort((a: MetaConfigDependency, b: MetaConfigDependency) => b.priority - a.priority)
@@ -444,6 +448,10 @@ export default defineComponent({
             .map(item => triggerReset(item).data)
       }
     }, {immediate: true, deep: true})
+
+    function checkScopeConfig(scopeElement: MetaConfig): void {
+
+    }
 
     function useDisabledEffect() {
       // 禁用数据影响判定数组
