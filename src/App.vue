@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import G3ScopeForm from "../lib/G3ScopeForm.vue";
+import {scopeConfig} from "@/moke-config.ts";
 </script>
 
 <template>
   <div>
-    <G3ScopeForm scope-code="scope1"></G3ScopeForm>
+    <G3ScopeForm :scope-config="scopeConfig.scope1">
+      <template #footer>
+        <button>submit a</button>
+      </template>
+    </G3ScopeForm>
   </div>
 </template>
 

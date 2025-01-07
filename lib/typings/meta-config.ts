@@ -1,17 +1,12 @@
-import type {ComponentValue, ComponentValueType, ExhibitComponent} from "./exhibit-component.ts";
+import type {ComponentValue, ComponentValueType} from "./exhibit-component.ts";
 import type {Component} from "@vue/runtime-core";
-
-export type MetaDependencyCondition = 'SOME' | 'NOT_IN' | 'ALL'
-export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies'>
 
 export interface MetaConfig {
     [field: string]: MetaKeyConfig
 }
 
 export interface MetaKeyConfig {
-    readonly id: string
     title: string
-    field: string
     display: boolean
     required: boolean
     order: number
@@ -29,6 +24,11 @@ export interface MetaKeyComponentProps {
     [key: string]: any
 }
 
+export type MetaDependencyCondition = 'SOME' | 'NOT_IN' | 'ALL'
+export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies'>
+export type MetaKeyConfigWithField = OmitDepMetaKeyConfig & { field: Extract<keyof MetaConfig, string> }
+
+
 export interface MetaOptionConfig {
     name: number
     id?: string
@@ -43,7 +43,7 @@ export interface MetaConfigDependency {
     depCondition: MetaDependencyCondition
     depValues: string[]
     priority: number
-    reset: OmitDepMetaKeyConfig
+    reset: MetaKeyConfigWithField
 }
 
 export interface DataEffect {
