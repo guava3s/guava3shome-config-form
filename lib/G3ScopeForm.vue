@@ -267,7 +267,7 @@
         <!--                :immediateInvalidate="immediateInvalidate(item.field)"/>-->
         <!--          </template>-->
 
-        <div v-if="validator(item)" class="g3-scope-form-error">{{ item.componentProps.placeholder }}</div>
+        <div v-if="validator(item)" class="g3-scope-form-error">{{ item.verifyPrompt }}</div>
       </div>
     </div>
     <div v-if="!readonly && !useFooterSlot" class="g3-scope-form-footer">

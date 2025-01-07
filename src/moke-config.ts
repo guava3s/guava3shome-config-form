@@ -1,3 +1,5 @@
+import type {MetaConfig} from "../lib/typings/meta-config.ts";
+
 export const scopeConfig = {
     'scope1': {
         name: {
@@ -6,11 +8,15 @@ export const scopeConfig = {
             required: true,
             component: () => import('../lib/component/G3Input.vue'),
             order: 1,
+            verifyPrompt: 'Please input name',
             componentProps: {
                 valueType: 'STRING',
                 placeholder: 'Please input name',
                 type: 'number',
                 disable: false
+            },
+            validator: () => {
+                return true
             }
         },
         password: {
@@ -19,6 +25,7 @@ export const scopeConfig = {
             required: true,
             component: () => import('../lib/component/G3Input.vue'),
             order: 2,
+            verifyPrompt: 'Please input password',
             componentProps: {
                 valueType: 'STRING',
                 placeholder: 'Please input password',
@@ -30,6 +37,7 @@ export const scopeConfig = {
             title: 'Color',
             display: true,
             required: true,
+            verifyPrompt: 'Please select color',
             component: () => import('../lib/component/G3Input.vue'),
             order: 3,
             componentProps: {

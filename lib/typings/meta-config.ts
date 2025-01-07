@@ -11,7 +11,10 @@ export interface MetaKeyConfig {
     required: boolean
     order: number
     componentProps: MetaKeyComponentProps
+    verifyPrompt: string
+    validator?: (value: any) => boolean
     readonly component: () => Promise<Component>
+    readonly getOptions?: (field: keyof MetaConfig) => MetaOptionConfig[]
     readonly dependencies?: MetaConfigDependency[]
 }
 
@@ -21,6 +24,7 @@ export interface MetaKeyComponentProps {
     defaultValue?: ComponentValue
     valueType?: ComponentValueType
     disable: boolean
+
     [key: string]: any
 }
 
