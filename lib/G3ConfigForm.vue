@@ -10,9 +10,9 @@
         <template v-if="item.display">
           <component :is="renderComponentMap[item.field]" v-model="scopeValues[item.field]"
                      v-bind="item.componentProps"></component>
+          <div v-if="validator(item)" class="g3-scope-form-error">{{ item.verifyPrompt }}</div>
         </template>
 
-        <div v-if="item.display && validator(item)" class="g3-scope-form-error">{{ item.verifyPrompt }}</div>
       </div>
     </div>
     <div v-if="!readonly && !useFooterSlot" class="g3-scope-form-footer">
