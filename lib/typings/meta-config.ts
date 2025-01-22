@@ -10,19 +10,19 @@ export interface MetaKeyConfig {
     display: boolean
     required: boolean
     order: number
+    defaultValue?: ComponentValue
+    valueType?: ComponentValueType
+    // 根据组件自定义
     componentProps: MetaKeyComponentProps
     verifyPrompt: string
-    validator?: (value: any) => boolean
     readonly component: () => Promise<Component>
-    readonly getOptions?: (field: keyof MetaConfig) => MetaOptionConfig[]
+    readonly customOptions?: (field: keyof MetaConfig) => Promise<MetaOptionConfig[]>
     readonly dependencies?: MetaConfigDependency[]
 }
 
 export interface MetaKeyComponentProps {
     placeholder: string
     options?: MetaOptionConfig[]
-    defaultValue?: ComponentValue
-    valueType?: ComponentValueType
     disable: boolean
 
     [key: string]: any
@@ -42,8 +42,7 @@ export interface MetaOptionConfig {
 }
 
 export interface MetaConfigDependency {
-    metaKeyMapId: number
-    depField: string
+    depField: keyof MetaConfig
     depCondition: MetaDependencyCondition
     depValues: string[]
     priority: number
