@@ -250,6 +250,8 @@ export default defineComponent({
               scopeValues.value[oldKeyConfig.field] = ''
             }
             break
+          } else {
+            resetScopeInfo = Object.assign(oldKeyConfig, backupKeyConfig.value[oldKeyConfig.field])
           }
         }
 
