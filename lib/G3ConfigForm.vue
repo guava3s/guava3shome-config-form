@@ -1,23 +1,21 @@
 <template>
-  <div class="g3-config-form-wrapper">
-    <div class="g3-config-form-items">
-      <div v-for="(item,index) in keyConfigList" :key="index" class="g3-config-form-props-wrapper">
+  <div class="g3-scope-form-wrapper">
+    <div class="g3-scope-form-items">
+      <div v-for="(item,index) in keyConfigList" :key="index" class="g3-scope-form-props-wrapper">
 
-        <div v-if="item.display" class="g3-config-form-props" :class="{'g3-config-form-required': item.required}">
+        <div v-if="item.display" class="g3-scope-form-props" :class="{'g3-scope-form-required': item.required}">
           <span>{{ item.title }}</span>
         </div>
 
         <template v-if="item.display">
           <component :is="renderComponentMap[item.field]" v-model="scopeValues[item.field]"
-                     v-bind="item.componentProps">
-            <slot :name="item.field" :scope="item.componentProps"></slot>
-          </component>
-          <div v-if="validator(item)" class="g3-config-form-error">{{ item.verifyPrompt }}</div>
+                     v-bind="item.componentProps"></component>
+          <div v-if="validator(item)" class="g3-scope-form-error">{{ item.verifyPrompt }}</div>
         </template>
 
       </div>
     </div>
-    <div v-if="!readonly && !useFooterSlot" class="g3-config-form-footer">
+    <div v-if="!readonly && !useFooterSlot" class="g3-scope-form-footer">
       <button @click="submit">submit</button>
       <button @click="resetScopeForm">cancel</button>
     </div>
@@ -314,25 +312,25 @@ export default defineComponent({
 <style scoped>
 
 
-.g3-config-form-props-wrapper {
+.g3-scope-form-props-wrapper {
   margin-bottom: 20px;
 }
 
-.g3-config-form-footer > button {
+.g3-scope-form-footer > button {
   margin: 10px;
 }
 
-.g3-config-form-props {
+.g3-scope-form-props {
   margin-bottom: 5px;
 }
 
-.g3-config-form-required::after {
+.g3-scope-form-required::after {
   content: '*';
   margin: 0 5px;
   color: red;
 }
 
-.g3-config-form-error {
+.g3-scope-form-error {
   color: red;
   font-size: 12px;
   margin: 5px 0;

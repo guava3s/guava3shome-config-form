@@ -28,7 +28,7 @@ export const scopeConfig = {
             verifyPrompt: 'Please input password',
             valueType: 'STRING',
             componentProps: {
-                placeholder: 'your password',
+                placeholder: 'Please input password',
                 type: 'password',
                 disable: false
             },
@@ -39,8 +39,7 @@ export const scopeConfig = {
                     depValues: ['SYSTEM'],
                     priority: 1,
                     reset: {
-                        display: false,
-                        required: false
+                        display: false
                     }
                 }
             ]
@@ -54,7 +53,7 @@ export const scopeConfig = {
             order: 3,
             valueType: 'STRING',
             componentProps: {
-                placeholder: 'your like color',
+                placeholder: 'Please select color',
                 disable: false,
                 type: 'color'
             }

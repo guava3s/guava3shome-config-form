@@ -1,6 +1,7 @@
 {
-  "name": "guava3shome-config-form",
-  "version": "0.0.2",
+  "name": "guava3shome-scope-form",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,8 +10,6 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build"
   },
-  "author": "huangsouth",
-  "license": "MIT",
   "dependencies": {
     "vue": "^3.5.13"
   },
