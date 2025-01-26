@@ -1,6 +1,8 @@
 import type {ComponentValue, ComponentValueType} from "./exhibit-component.ts";
 import type {Component} from "@vue/runtime-core";
+import type {InputValidator, RequiredDescValidator} from "./runtime-validate.ts";
 
+// 配置整个活动周期
 export interface MetaConfig {
     [field: string]: MetaKeyConfig
 }
@@ -8,22 +10,23 @@ export interface MetaConfig {
 export interface MetaKeyConfig {
     title: string
     display: boolean
-    required: boolean
+    required: RequiredDescValidator
+    component: () => Promise<Component>
+    componentProps: MetaKeyComponentProps
     order: number
     defaultValue?: ComponentValue
     valueType?: ComponentValueType
     // 根据组件自定义
-    componentProps: MetaKeyComponentProps
-    verifyPrompt: string
-    readonly component: () => Promise<Component>
+    validator?: InputValidator
     readonly customOptions?: (field: keyof MetaConfig) => Promise<MetaOptionConfig[]>
     readonly dependencies?: MetaConfigDependency[]
 }
 
 export interface MetaKeyComponentProps {
-    placeholder: string
-    options?: MetaOptionConfig[]
-    disable: boolean
+    disable: {
+        alias: string
+        value: boolean
+    } | boolean
 
     [key: string]: any
 }

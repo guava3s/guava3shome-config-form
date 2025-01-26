@@ -1,31 +1,62 @@
 import type {MetaConfig} from "../lib/typings/meta-config.ts";
+import {TriggerType} from "../lib/typings/runtime-validate.ts";
 
 export const scopeConfig = {
     'scope1': {
         name: {
-            title: 'Username',
+            title: 'Test1',
             display: true,
-            required: true,
+            required: {
+                value: true,
+                message: 'Please input name'
+            },
             component: () => import('../lib/component/G3Input.vue'),
             order: 1,
-            verifyPrompt: 'Please input name',
             valueType: 'STRING',
             componentProps: {
                 placeholder: 'Please input name',
                 type: 'text',
                 disable: false
             },
-            validator: () => {
-                return true
-            }
+            validator: {
+                triggerType: TriggerType.change,
+                triggerDelay: 0,
+                validate: async (value: string) => {
+                    if (value.length > 32) {
+                        return {
+                            success: false,
+                            message: 'The username length should not exceed 32.'
+                        }
+                    }
+
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            console.log('promise to set timeout value=', value)
+                            if (value.includes('A')) {
+                                resolve({
+                                    success: false,
+                                    message: 'fuck'
+                                })
+                            } else {
+                                resolve({
+                                    success: true,
+                                    message: ''
+                                })
+                            }
+                        }, 1000)
+                    })
+                }
+            },
         },
         password: {
-            title: 'Password',
+            title: 'Test2',
             display: true,
-            required: true,
+            required: {
+                value: true,
+                message: 'Please input password'
+            },
             component: () => import('../lib/component/G3Input.vue'),
             order: 2,
-            verifyPrompt: 'Please input password',
             valueType: 'STRING',
             componentProps: {
                 placeholder: 'your password',
@@ -44,20 +75,6 @@ export const scopeConfig = {
                     }
                 }
             ]
-        },
-        color: {
-            title: 'Color',
-            display: true,
-            required: true,
-            verifyPrompt: 'Please select color',
-            component: () => import('../lib/component/G3Input.vue'),
-            order: 3,
-            valueType: 'STRING',
-            componentProps: {
-                placeholder: 'your like color',
-                disable: false,
-                type: 'color'
-            }
         }
     }
 }

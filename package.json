@@ -1,7 +1,14 @@
 {
   "name": "guava3shome-config-form",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "type": "module",
+  "keywords": [
+    "vue",
+    "vue3",
+    "form",
+    "G3ConfigForm",
+    "guava3shome"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
@@ -9,9 +16,10 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build"
   },
-  "author": "huangsouth",
+  "author": "HuangSouth <2168626265@qq.com>",
   "license": "MIT",
   "dependencies": {
+    "guava3shome-h5-utils": "^1.1.0",
     "vue": "^3.4.21"
   },
   "devDependencies": {
