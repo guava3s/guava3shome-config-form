@@ -1,5 +1,5 @@
 import G3ConfigForm from '../G3ConfigForm.vue'
-import { globalCropper } from '../index'
+import { globalConfigForm } from '../index'
 import type { App } from 'vue';
 export interface configFormGlobal {
     version: string,
@@ -11,4 +11,4 @@ export {
     G3ConfigForm
 }
 
-export default globalCropper
+export default globalConfigForm
