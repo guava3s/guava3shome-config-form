@@ -1,7 +1,7 @@
-
+定制化配置动态逻辑表单
 
 ```
-markdownCopyEdit# G3ScopeForm
+G3ScopeForm
 
 `G3ScopeForm` 允许开发者根据配置动态生成表单项，并提供验证、依赖关系、提交和重置等功能。它支持多种配置选项，帮助简化表单构建过程。
 
