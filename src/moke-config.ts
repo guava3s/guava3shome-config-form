@@ -1,4 +1,3 @@
-import type {MetaConfig} from "../lib/typings/meta-config.ts";
 import {TriggerType} from "../lib/typings/runtime-validate.ts";
 
 export const scopeConfig = {

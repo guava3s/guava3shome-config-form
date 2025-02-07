@@ -15,6 +15,11 @@ export interface ValidateResult {
     message: string
 }
 
+export interface ValidateResultParams extends ValidateResult {
+    mark?: number
+}
+
+
 export interface RequiredDescValidator {
     value: boolean
     message: string
@@ -22,7 +27,7 @@ export interface RequiredDescValidator {
 }
 
 export interface InputValidator {
-    validate: (value: any, props: MetaKeyComponentProps) => Promise<ValidateResult>
+    validate: (value: any, response: ValidateResultParams, props: MetaKeyComponentProps) => Promise<void>
     triggerType?: TriggerType
     triggerDelay?: number
     immediate?: boolean
