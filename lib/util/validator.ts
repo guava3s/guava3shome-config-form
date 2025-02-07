@@ -49,6 +49,7 @@ export default function useComponentValidator({context}: InternalContext) {
         if (config.validator && context.keyForValues.value[config.field]) {
             kfV.mark = ++increaseNumber
             const response = JSON.parse(JSON.stringify(kfV))
+            Object.defineProperty(response, 'mark', {writable: false})
             await config.validator.validate(context.keyForValues.value[config.field], response, config.componentProps)
             if (response.mark === kfV.mark) {
                 Object.assign(kfV, response)
