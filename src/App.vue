@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import G3ConfigForm from "../lib/G3ConfigForm.vue";
-import {TriggerType, type ValidateResult} from "../lib/typings/runtime-validate.ts";
+import {
+  type FailCallback,
+  type SuccessCallback,
+  TriggerType,
+  type ValidateResult
+} from "../lib/typings/runtime-validate.ts";
 
 const scopeConfig = {
   'scope1': {
@@ -9,7 +14,7 @@ const scopeConfig = {
       display: true,
       required: {
         value: false,
-        // message: 'Please input name name name',
+        message: 'Please input name name name',
         // immediate: false
       },
       component: () => import('../lib/component/G3Input.vue'),
@@ -23,10 +28,11 @@ const scopeConfig = {
       validator: {
         triggerType: TriggerType.change,
         triggerDelay: 200,
-        validate: async (value: string, response: ValidateResult) => {
-          if (value.length > 32) {
-            response.success = false
-            response.message = 'The username length should not exceed 32.'
+        validate: async (value: string, success: SuccessCallback, fail: FailCallback) => {
+          if (value.length > 100) {
+            fail('The username length should not exceed 10.')
+            // response.success = false
+            // response.message = 'The username length should not exceed 10.'
             return
           }
 
@@ -34,15 +40,16 @@ const scopeConfig = {
             console.log('发起请求')
             setTimeout(() => {
               resolve(1)
-            }, 1000)
+            }, 3000)
           })
           if (value.includes('fu')) {
-            response.success = false
-            response.message = 'fuck'
+            fail('don\'t fu')
+            // response.success = false
+            // response.message = 'fuck'
           } else {
-            response.success = false
-            response.message = value
-            console.log('promise to set timeout value=', value)
+            success(true)
+            // response.success = false
+            // response.message = value
           }
         }
       },
@@ -70,7 +77,9 @@ const scopeConfig = {
           priority: 1,
           reset: {
             display: false,
-            required: false
+            required: {
+              value: false,
+            },
           }
         }
       ]

@@ -12,10 +12,10 @@ export default function useComponentValidator({context}: InternalContext) {
     const keyForValidate = ref<Record<keyof MetaConfig, ValidateResultParams>>({})
     const keyForTimer: Record<keyof MetaConfig, number> = {}
 
-    // 默认校验
+    // 默认校验: return success?
     function defaultValidate(field: keyof MetaConfig, required: RequiredDescValidator): boolean {
         const fieldValue = context.keyForValues.value[field];
-        return (required.value && (!['null', 'undefined', ''].includes(String(fieldValue))))
+        return required.value ? ![null, undefined, ''].includes(fieldValue) : true
     }
 
     // required 与 validator 相互独立，required < validator
@@ -28,7 +28,8 @@ export default function useComponentValidator({context}: InternalContext) {
 
         keyForValidate.value[field] = {
             success: config.required.immediate ? defaultValidate(field, config.required) : true,
-            message: config.required.message
+            message: config.required.message,
+            mark: {}
         }
 
         if (!config.validator) {
@@ -48,44 +49,52 @@ export default function useComponentValidator({context}: InternalContext) {
         const kfV = keyForValidate.value[config.field]
         const defaultSuccess = defaultValidate(config.field, config.required)
         kfV.success = defaultSuccess
-        kfV.message = !defaultSuccess ? config.required.message : ''
+        !defaultSuccess && (kfV.message = config.required.message)
         if (config.validator && context.keyForValues.value[config.field]) {
-            kfV.mark = ++increaseNumber
+            kfV.mark[++increaseNumber] = false
             const response = JSON.parse(JSON.stringify(kfV))
-            Object.defineProperty(response, 'mark', {writable: false})
-            await config.validator.validate(context.keyForValues.value[config.field], response, config.componentProps)
-            if (response.mark === kfV.mark) {
-                Object.assign(kfV, response)
+            try {
+                await new Promise((resolve, reject) => {
+                    config.validator?.validate(context.keyForValues.value[config.field], resolve, reject, config.componentProps)
+                })
+                kfV.success = true
+            } catch (e) {
+                kfV.success = false
+                kfV.message = e as string
             }
             if (kfV.success) {
                 kfV.message = ''
             }
-            return kfV.success
+            console.log('hello', kfV)
         }
-        return true
+        // 销户
+
+        return kfV.success
     }
 
     // 执行change校验
     async function processValidate(configList: MetaKeyConfigWithField[], scope: TriggerScope = TriggerScope.item): Promise<boolean> {
-        const result = await Promise.all(configList.filter(cl => {
-            return cl.validator?.triggerType === TriggerType.change
-                && cl.validator?.scope?.includes(scope)
-        }).map(config => {
-            return new Promise(async (resolve) => {
-                if (keyForTimer[config.field]) {
-                    clearTimeout(keyForTimer[config.field])
-                }
-                if ((config.validator?.triggerDelay || 0) <= 0) {
-                    const success = await validateItem(config)
-                    resolve(success)
-                } else {
-                    keyForTimer[config.field] = setTimeout(async () => {
+        const result = await Promise.all(
+            configList.filter(cl => {
+                const validator = cl.validator
+                return validator ? validator.triggerType === TriggerType.change && validator.scope?.includes(scope) : true
+            }).map(config => {
+                return new Promise(async (resolve) => {
+                    if (keyForTimer[config.field]) {
+                        clearTimeout(keyForTimer[config.field])
+                    }
+                    if ((config.validator?.triggerDelay || 0) <= 0) {
                         const success = await validateItem(config)
                         resolve(success)
-                    }, config.validator?.triggerDelay)
-                }
+                    } else {
+                        keyForTimer[config.field] = setTimeout(async () => {
+                            const success = await validateItem(config)
+                            resolve(success)
+                        }, config.validator?.triggerDelay)
+                    }
+                })
             })
-        }))
+        )
 
         return !result.includes(false)
     }

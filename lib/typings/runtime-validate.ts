@@ -16,7 +16,9 @@ export interface ValidateResult {
 }
 
 export interface ValidateResultParams extends ValidateResult {
-    mark?: number
+    mark: {
+        [key: string]: boolean
+    }
 }
 
 
@@ -27,8 +29,11 @@ export interface RequiredDescValidator {
     immediate?: boolean
 }
 
+export type SuccessCallback = (value: unknown) => void
+export type FailCallback = (value: unknown) => void
+
 export interface InputValidator {
-    validate: (value: any, response: ValidateResultParams, props: MetaKeyComponentProps) => Promise<void>
+    validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
     triggerType?: TriggerType
     triggerDelay?: number
     // Execute verification immediately after the form is displayed
