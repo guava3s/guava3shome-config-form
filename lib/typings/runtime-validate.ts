@@ -23,6 +23,7 @@ export interface ValidateResultParams extends ValidateResult {
 export interface RequiredDescValidator {
     value: boolean
     message: string
+    // Execute verification immediately after the form is displayed
     immediate?: boolean
 }
 
@@ -30,6 +31,7 @@ export interface InputValidator {
     validate: (value: any, response: ValidateResultParams, props: MetaKeyComponentProps) => Promise<void>
     triggerType?: TriggerType
     triggerDelay?: number
+    // Execute verification immediately after the form is displayed
     immediate?: boolean
     scope?: TriggerScope[]
 }

@@ -8,7 +8,9 @@
         </div>
 
         <template v-if="item.display">
-          <component :is="renderComponentMap[item.field]" v-model="keyForValues[item.field]"
+          <component :is="renderComponentMap[item.field]"
+                     :tabindex="index"
+                     v-model="keyForValues[item.field]"
                      v-bind="item.componentProps">
             <slot :name="item.field" :scope="item.componentProps"></slot>
           </component>
@@ -28,28 +30,27 @@
 </template>
 
 <script lang="ts">
-import {defineAsyncComponent, defineComponent, nextTick, ref, shallowRef, watch} from "vue"
+import {
+  defineAsyncComponent,
+  defineComponent,
+  nextTick,
+  ref,
+  shallowRef,
+  watch
+} from "vue"
 import type {
   MetaConfig,
   MetaConfigDependency,
   MetaKeyConfig,
   MetaKeyConfigWithField,
 } from "./typings/meta-config.ts"
-import {containKey} from "./util/type-check.ts"
+import {containKey, VALUE_TYPE_MAP} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
 import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
 import {G3Context} from "guava3shome-h5-utils"
 import {deepClone} from "guava3shome-h5-utils/dist/object-util"
-
-
-const VALUE_TYPE_MAP = {
-  'number': (value: any) => Number(value),
-  'boolean': (value: any) => Boolean(value),
-  'string': (value: any) => String(value ?? ''),
-  'base_array': (value: any) => value ?? []
-}
-
+import {TriggerScope} from "./typings/runtime-validate.ts";
 
 export default defineComponent({
   props: {
@@ -143,42 +144,44 @@ export default defineComponent({
       keyForValues.value[field] = renderValue ?? null
     }
 
-    // 是否需要监听值变化
+    // init
     watch(props, (newValue) => {
       if (newValue.keyConfig) {
         const scopeElement: MetaConfig = newValue.keyConfig
 
         keyConfigList.value = Object.entries(scopeElement)
-            .map((element) => {
-              let [field, config] = element
-              config = deepClone(config)
-              const {dependencies, ...otherField} = config
-              renderComponentMap.value[field] = shallowRef(defineAsyncComponent(config.component))
-              config.componentProps.disable ||= props.readonly
+            .map(([field, config]) => {
+              const element = {
+                field,
+                ...deepClone(config)
+              }
+              fillValue(field, element)
+              fillValidate(field, element)
 
-              // 依赖初始化
+              const {dependencies, ...otherField} = element
+              renderComponentMap.value[field] = shallowRef(defineAsyncComponent(element.component))
+              element.componentProps.disable ||= props.readonly
+
+              // dependency init
               if (dependencies?.length) {
                 dependencies.sort((a: MetaConfigDependency, b: MetaConfigDependency) => b.priority - a.priority)
                 backupKeyDependencies.value[field] = dependencies
-                backupKeyConfig.value[field] = {field, ...otherField}
+                backupKeyConfig.value[field] = {...otherField}
               }
-
-              fillValue(field, config)
-              fillValidate(field, config)
 
               return element
             })
-            .sort(([_1, v1], [_2, v2]) => v1.order - v2.order)
-            // 检索依赖，替换对应元数据
-            .map(item => triggerReset(Object.assign(item[1], {field: item[0]})).data)
+            .sort((v1, v2) => v1.order - v2.order)
+            // dependency search, 替换对应元数据
+            .map(item => triggerReset(item).data)
 
-
-        processValidate(keyConfigList.value.filter(obj => obj.validator?.immediate))
+        // After initialization, verify the items that need to be verified immediately
+        processValidate(keyConfigList.value.filter(obj => obj.required.immediate && obj.validator?.immediate))
       }
     }, {immediate: true, deep: true})
 
 
-    // 监听表单输入值
+    // core 监听表单输入值
     watch(keyForValues, async () => {
       let hasChange = false
 
@@ -203,7 +206,7 @@ export default defineComponent({
 
     }, {deep: true})
 
-    // 触发重新配置
+    // trigger reconfiguration
     function triggerReset(oldKeyConfig: MetaKeyConfigWithField) {
 
       const result = {
@@ -246,7 +249,7 @@ export default defineComponent({
     }
 
     async function submit(): Promise<void> {
-      const success = await processValidate(keyConfigList.value)
+      const success = await processValidate(keyConfigList.value, TriggerScope.submit)
       // 提交数据
       success && !props.useFooterSlot && emit('submit', JSON.parse(JSON.stringify(keyForValues.value)))
     }

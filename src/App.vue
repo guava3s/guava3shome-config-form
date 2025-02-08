@@ -8,8 +8,9 @@ const scopeConfig = {
       title: 'Test1',
       display: true,
       required: {
-        value: true,
-        message: 'Please input name'
+        value: false,
+        // message: 'Please input name name name',
+        // immediate: false
       },
       component: () => import('../lib/component/G3Input.vue'),
       order: 1,
@@ -29,21 +30,20 @@ const scopeConfig = {
             return
           }
 
-          new Promise((resolve) => {
+          await new Promise((resolve) => {
             console.log('发起请求')
             setTimeout(() => {
-              if (value.includes('fu')) {
-                response.success = false
-                response.message = 'fuck'
-                resolve(response)
-              } else {
-                response.success = false
-                response.message = value
-                console.log('promise to set timeout value=', value)
-                resolve(response)
-              }
+              resolve(1)
             }, 1000)
           })
+          if (value.includes('fu')) {
+            response.success = false
+            response.message = 'fuck'
+          } else {
+            response.success = false
+            response.message = value
+            console.log('promise to set timeout value=', value)
+          }
         }
       },
     },

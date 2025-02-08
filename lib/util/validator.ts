@@ -1,6 +1,6 @@
 import {ref} from "vue";
 import type {MetaConfig, MetaKeyConfig, MetaKeyConfigWithField} from "../typings/meta-config.ts";
-import type {RequiredDescValidator, ValidateResult, ValidateResultParams} from "../typings/runtime-validate.ts";
+import type {RequiredDescValidator, ValidateResultParams} from "../typings/runtime-validate.ts";
 import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
 
@@ -18,10 +18,13 @@ export default function useComponentValidator({context}: InternalContext) {
         return (required.value && (!['null', 'undefined', ''].includes(String(fieldValue))))
     }
 
+    // required 与 validator 相互独立，required < validator
     function fillValidate(field: Extract<keyof MetaConfig, string>, config: MetaKeyConfig): void {
         config.required.value ??= true
         config.required.immediate ??= true
-        config.required.message ??= empty_prompt
+        if (config.required.value) {
+            config.required.message ??= empty_prompt
+        }
 
         keyForValidate.value[field] = {
             success: config.required.immediate ? defaultValidate(field, config.required) : true,
@@ -36,9 +39,9 @@ export default function useComponentValidator({context}: InternalContext) {
         }
 
         config.validator.triggerType ??= TriggerType.change
-        config.validator.triggerDelay ??= (config.validator.triggerType === TriggerType.change ? 250 : 0)
+        config.validator.triggerDelay ??= (config.validator.triggerType === TriggerType.change ? 200 : 0)
         config.validator.immediate ??= true
-        config.validator.scope ??= [TriggerScope.item]
+        config.validator.scope ??= [TriggerScope.item, TriggerScope.submit]
     }
 
     async function validateItem(config: MetaKeyConfigWithField): Promise<boolean> {
@@ -62,11 +65,11 @@ export default function useComponentValidator({context}: InternalContext) {
         return true
     }
 
-    // 执行校验
-    async function processValidate(configList: MetaKeyConfigWithField[]): Promise<boolean> {
-
+    // 执行change校验
+    async function processValidate(configList: MetaKeyConfigWithField[], scope: TriggerScope = TriggerScope.item): Promise<boolean> {
         const result = await Promise.all(configList.filter(cl => {
             return cl.validator?.triggerType === TriggerType.change
+                && cl.validator?.scope?.includes(scope)
         }).map(config => {
             return new Promise(async (resolve) => {
                 if (keyForTimer[config.field]) {
