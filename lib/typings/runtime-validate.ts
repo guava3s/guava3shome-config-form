@@ -16,9 +16,7 @@ export interface ValidateResult {
 }
 
 export interface ValidateResultParams extends ValidateResult {
-    mark: {
-        [key: string]: boolean
-    }
+    controller?: AbortController | null
 }
 
 

@@ -5,7 +5,6 @@ import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
 
 const empty_prompt: string = 'The field value cannot be empty.'
-let increaseNumber = 0
 
 export default function useComponentValidator({context}: InternalContext) {
 
@@ -29,7 +28,6 @@ export default function useComponentValidator({context}: InternalContext) {
         keyForValidate.value[field] = {
             success: config.required.immediate ? defaultValidate(field, config.required) : true,
             message: config.required.message,
-            mark: {}
         }
 
         if (!config.validator) {
@@ -50,11 +48,20 @@ export default function useComponentValidator({context}: InternalContext) {
         const defaultSuccess = defaultValidate(config.field, config.required)
         kfV.success = defaultSuccess
         !defaultSuccess && (kfV.message = config.required.message)
+        if (kfV.controller) {
+            kfV.controller.abort()
+        }
         if (config.validator && context.keyForValues.value[config.field]) {
-            kfV.mark[++increaseNumber] = false
-            const response = JSON.parse(JSON.stringify(kfV))
+            kfV.controller = new AbortController()
             try {
                 await new Promise((resolve, reject) => {
+                    const onAbort = () => {
+                        resolve(true)
+                        kfV.controller?.signal.removeEventListener('abort', onAbort)
+                        kfV.controller = null
+                    }
+                    kfV.controller?.signal.addEventListener('abort', onAbort)
+
                     config.validator?.validate(context.keyForValues.value[config.field], resolve, reject, config.componentProps)
                 })
                 kfV.success = true
@@ -65,9 +72,7 @@ export default function useComponentValidator({context}: InternalContext) {
             if (kfV.success) {
                 kfV.message = ''
             }
-            console.log('hello', kfV)
         }
-        // 销户
 
         return kfV.success
     }
