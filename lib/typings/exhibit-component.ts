@@ -6,7 +6,11 @@ export type ComponentValue = string | number | boolean | string[] | number[] | b
 export const defaultConfig = {
     title: '',
     display: true,
-    required: true,
+    required: {
+        value: true,
+        message: '',
+        immediate: true
+    },
     order: 1,
     defaultValue: '',
     valueType: 'string',
@@ -34,7 +38,11 @@ export const defaultConfig = {
             reset: {
                 title: '',
                 display: true,
-                required: true,
+                required: {
+                    value: true,
+                    message: '',
+                    immediate: true
+                },
                 order: 1,
                 defaultValue: '',
                 valueType: 'string',
@@ -45,8 +53,9 @@ export const defaultConfig = {
                 verifyPrompt: '',
                 validator: {
                     triggerType: TriggerType.change,
-                    delay: 150,
+                    triggerDelay: 150,
                     scope: [TriggerScope.item],
+                    immediate: true,
                     validator: () => {
                     }
                 },

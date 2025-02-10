@@ -3,6 +3,7 @@ import type {MetaConfig, MetaKeyConfig, MetaKeyConfigWithField} from "../typings
 import type {RequiredDescValidator, ValidateResultParams} from "../typings/runtime-validate.ts";
 import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
+import {deepClone} from "guava3shome-h5-utils/dist/object-util";
 
 const empty_prompt: string = 'The field value cannot be empty.'
 
@@ -62,7 +63,7 @@ export default function useComponentValidator({context}: InternalContext) {
                     }
                     kfV.controller?.signal.addEventListener('abort', onAbort)
 
-                    config.validator?.validate(context.keyForValues.value[config.field], resolve, reject, config.componentProps)
+                    config.validator?.validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.componentProps)
                 })
                 kfV.success = true
             } catch (e) {

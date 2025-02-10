@@ -41,8 +41,7 @@ import {
 import type {
   MetaConfig,
   MetaConfigDependency,
-  MetaKeyConfig,
-  MetaKeyConfigWithField,
+  MetaKeyConfig, MetaKeyConfigWithField, OmitDepMetaKeyConfig,
 } from "./typings/meta-config.ts"
 import {containKey, VALUE_TYPE_MAP} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
@@ -108,6 +107,12 @@ export default defineComponent({
       required: false,
       default: false
     },
+    beforeSubmit: {
+      type: Function,
+      required: false,
+      default: () => {
+      }
+    }
   },
   emits: ['submit', 'cancel'],
   setup(props, {emit, expose}) {
@@ -165,7 +170,7 @@ export default defineComponent({
               // dependency init
               if (dependencies?.length) {
                 dependencies.sort((a: MetaConfigDependency, b: MetaConfigDependency) => b.priority - a.priority)
-                backupKeyDependencies.value[field] = dependencies
+                backupKeyDependencies.value[field] = deepClone(dependencies)
                 backupKeyConfig.value[field] = {...otherField}
               }
 
@@ -219,9 +224,9 @@ export default defineComponent({
         for (const dep of fieldDependencyList) {
           const findValue = keyForValues.value[dep.depField]
 
-          if (dep.depCondition === 'SOME' && dep.depValues.includes(findValue) ||
-              dep.depCondition === 'NOT_IN' && !dep.depValues.includes(findValue) ||
-              dep.depCondition === 'ALL' && dep.depValues.every(dV => dV === findValue)) {
+          if (dep.depCondition === 'some' && dep.depValues.includes(findValue) ||
+              dep.depCondition === 'not_in' && !dep.depValues.includes(findValue) ||
+              dep.depCondition === 'all' && findValue.every((dV: any) => dep.depValues.includes(dV))) {
             resetScopeInfo = Object.assign(oldKeyConfig, dep.reset)
             // 清空不显示key的value
             if (!resetScopeInfo.display) {
@@ -236,7 +241,7 @@ export default defineComponent({
         // 针对单一个字段通过
         if (resetScopeInfo) {
           result.change = true
-          result.data = resetScopeInfo
+          // result.data = resetScopeInfo
         } else if (containKey(backupKeyConfig.value, oldKeyConfig.field)) {
           // 恢复
           result.change = true
@@ -249,9 +254,12 @@ export default defineComponent({
     }
 
     async function submit(): Promise<void> {
+      await new Promise((resolve, reject) => {
+        props.beforeSubmit(resolve, reject)
+      })
       const success = await processValidate(keyConfigList.value, TriggerScope.submit)
       // 提交数据
-      success && !props.useFooterSlot && emit('submit', JSON.parse(JSON.stringify(keyForValues.value)))
+      success && !props.useFooterSlot && emit('submit', deepClone(keyForValues.value))
     }
 
     function resetScopeForm(): void {

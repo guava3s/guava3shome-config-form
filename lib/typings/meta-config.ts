@@ -31,9 +31,9 @@ export interface MetaKeyComponentProps {
     [key: string]: any
 }
 
-export type MetaDependencyCondition = 'SOME' | 'NOT_IN' | 'ALL'
+export type MetaDependencyCondition = 'some' | 'not_in' | 'all'
 export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies'>
-export type MetaKeyConfigWithField = OmitDepMetaKeyConfig & { field: Extract<keyof MetaConfig, string> }
+export type MetaKeyConfigWithField = OmitDepMetaKeyConfig & { readonly field: Extract<keyof MetaConfig, string> }
 
 
 export interface MetaOptionConfig {
@@ -49,7 +49,7 @@ export interface MetaConfigDependency {
     depCondition: MetaDependencyCondition
     depValues: string[]
     priority: number
-    reset: MetaKeyConfigWithField
+    reset: OmitDepMetaKeyConfig
 }
 
 export interface DataEffect {
