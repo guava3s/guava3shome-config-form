@@ -39,11 +39,13 @@ import {
   watch
 } from "vue"
 import type {
+  keyForString,
   MetaConfig,
   MetaConfigDependency,
-  MetaKeyConfig, MetaKeyConfigWithField, OmitDepMetaKeyConfig,
+  MetaKeyConfig,
+  MetaKeyConfigWithField,
 } from "./typings/meta-config.ts"
-import {containKey, VALUE_TYPE_MAP} from "./util/type-check.ts"
+import {containKey, hasFunction, VALUE_TYPE_MAP} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
 import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
@@ -74,17 +76,6 @@ export default defineComponent({
       default: false
     },
     /**
-     * 自定义选项
-     * {[field:string] : Array<MetaOptionConfig>}
-     */
-    customOptions: {
-      type: Object,
-      required: false,
-      default: () => {
-        return {}
-      }
-    },
-    /**
      * 主从数据影响：只针对数据不涉及配置；若同时存在依赖，则依赖优先
      * {[masterField: string]: Array<{
      *    slaveField:string
@@ -108,10 +99,9 @@ export default defineComponent({
       default: false
     },
     beforeSubmit: {
-      type: Function,
+      type: [Boolean, Function],
       required: false,
-      default: () => {
-      }
+      default: false
     }
   },
   emits: ['submit', 'cancel'],
@@ -140,13 +130,19 @@ export default defineComponent({
     const {keyForValidate, fillValidate, processValidate} = ctx.add(useComponentValidator)
     const {disableEffect, triggerDataEffect} = ctx.add(useDataEffect)
 
-    function fillValue(field: keyof MetaConfig, config: MetaKeyConfig): void {
+    function fillValue(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
       // use sort：keyData > defaultValue
       let renderValue = props.keyData[field]
       if (!renderValue && config.valueType && config.defaultValue) {
         renderValue = VALUE_TYPE_MAP[config.valueType](config.defaultValue)
       }
       keyForValues.value[field] = renderValue ?? null
+    }
+
+    function fillOptions(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
+      if (hasFunction(config.options)) {
+        config.options(field).then(res => config.options = res)
+      }
     }
 
     // init
@@ -162,6 +158,7 @@ export default defineComponent({
               }
               fillValue(field, element)
               fillValidate(field, element)
+              fillOptions(field, element)
 
               const {dependencies, ...otherField} = element
               renderComponentMap.value[field] = shallowRef(defineAsyncComponent(element.component))
@@ -254,8 +251,12 @@ export default defineComponent({
     }
 
     async function submit(): Promise<void> {
-      await new Promise((resolve, reject) => {
-        props.beforeSubmit(resolve, reject)
+      await new Promise<void>((resolve, reject) => {
+        if (hasFunction(props.beforeSubmit)) {
+          props.beforeSubmit(resolve, reject)
+        } else {
+          resolve()
+        }
       })
       const success = await processValidate(keyConfigList.value, TriggerScope.submit)
       // 提交数据

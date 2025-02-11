@@ -140,7 +140,6 @@ app.mount('#app')
 | `keyConfig`     | `Object`   | `{}`     | 表单项的配置，包含每个字段的配置信息，如标题、是否必填、默认值等。                                                                                           |
 | `keyData`       | `Object`   | `{}`     | 表单项的初始数据，若提供了该字段则使用初始数据，否则使用 `keyConfig` 中的默认值。                                                                             |
 | `readonly`      | `Boolean`  | `false`  | 是否为只读模式，默认为 `false`，在该模式下表单项不可编辑。                                                                                           |
-| `customOptions` | `Object`   | `{}`     | 自定义选项，格式为 `{[field: string]: Array<MetaOptionConfig>}`，可以为某些字段提供自定义选项。                                                      |
 | `keyDataEffect` | `Object`   | `{}`     | 字段数据之间的影响规则，格式为 `{[masterField: string]: Array<{slaveField: string, valueMap: {mFValue1: sFValue1, ...}}>`，指定数据变化时如何影响其他字段。 |
 | `useFooterSlot` | `Boolean`  | `false`  | 是否使用自定义底部插槽，默认为 `false`。设置为 `true` 时，将替代默认的提交和取消按钮。                                                                         |
 | `beforeSubmit`  | `Function` | `()=>{}` | 在表单提交前执行函数（此时还未进行校验）                                                                                                        |
@@ -311,7 +310,7 @@ interface MetaConfigDependency {
         /**
          * 用于动态获取字典值
          */
-        readonly customOptions?: (field: keyof MetaConfig) => Promise<MetaOptionConfig[]>
+        options?: MetaOptionConfig[] | ((field: keyof MetaConfig) => Promise<MetaOptionConfig[]>)
     }
 }
 ```

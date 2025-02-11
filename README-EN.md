@@ -2,11 +2,15 @@
 
 Customizable Dynamic Logic Form Configuration
 
-A single configuration setup eliminates subsequent repetitive logic processing. Ideal for rapid prototyping or scenarios requiring multiple customized pages with similar styles, significantly reducing development time.
+A single configuration setup eliminates subsequent repetitive logic processing. Ideal for rapid prototyping or scenarios
+requiring multiple customized pages with similar styles, significantly reducing development time.
 
-Unlike traditional form configuration plugins, G3ConfigForm doesn't provide built-in form components. Developers can dynamically import components through the 'component' field, supporting both custom implementations and popular UI libraries like AntUI/ElementUI.
+Unlike traditional form configuration plugins, G3ConfigForm doesn't provide built-in form components. Developers can
+dynamically import components through the 'component' field, supporting both custom implementations and popular UI
+libraries like AntUI/ElementUI.
 
-When using dynamically imported components, developers can initialize and control component props via the 'componentProps' field for enhanced flexibility.
+When using dynamically imported components, developers can initialize and control component props via the '
+componentProps' field for enhanced flexibility.
 
 ## Getting Started
 
@@ -35,7 +39,9 @@ app.mount('#app')
 ```
 
 ### Implementation Example
+
 ```vue
+
 <template>
   <G3ConfigForm :keyConfig="G3ConfigForm" @submit="submit"/>
 </template>
@@ -118,41 +124,46 @@ app.mount('#app')
 ```
 
 ### Key Features
-- Dynamic Form Rendering: Renders form items based on keyConfig configurations 
-- Field Dependencies: Supports dynamic dependencies between fields with automatic updates 
-- Validation System: Implements required field validation and custom validation rules 
-- Customizable Slots: Provides flexible slot mechanisms for content customization 
+
+- Dynamic Form Rendering: Renders form items based on keyConfig configurations
+- Field Dependencies: Supports dynamic dependencies between fields with automatic updates
+- Validation System: Implements required field validation and custom validation rules
+- Customizable Slots: Provides flexible slot mechanisms for content customization
 - Form Actions: Built-in submit/reset functionality with event communication
 
 ### Component Specifications
 
 #### Props
-Property	    Type	                Default	Description
-keyConfig	    Object	    {}	        Configuration object containing field details (title, required status, default values, etc.)
-keyData	        Object	    {}	        Initial form data (overrides keyConfig defaults when provided)
-readonly	    Boolean	    false	    Read-only mode toggle
-customOptions	Object	    {}	        Custom options map: {[field: string]: Array<MetaOptionConfig>}
-keyDataEffect	Object	    {}	        Master-slave field relationships: {[masterField: string]: Array<{slaveField: string, valueMap: Object}>}
-useFooterSlot	Boolean	    false	    Enables custom footer slot replacement
-beforeSubmit	Function	()=>{}	    Pre-submission hook (executes before validation)
+
+| Property        | Type       | Default	 | Description                                                                                              |
+|-----------------|------------|----------|----------------------------------------------------------------------------------------------------------|
+| `keyConfig`     | `Object`   | `{}`     | Configuration object containing field details (title, required status, default values, etc.)             |
+| `keyData`       | `Object`   | `{}`     | Initial form data (overrides keyConfig defaults when provided)                                           |
+| `readonly`      | `Boolean`  | `false`  | Read-only mode toggle                                                                                    |
+| `keyDataEffect` | `Object`   | `{}`     | Master-slave field relationships: {[masterField: string]: Array<{slaveField: string, valueMap: Object}>} |
+| `useFooterSlot` | `Boolean`  | `false`  | Enables custom footer slot replacement                                                                   |
+| `beforeSubmit`  | `Function` | `()=>{}` | Pre-submission hook (executes before validation)                                                         
 
 #### Events
 
-Event	Parameters	                    Description
-submit	data: Record<string, any>	    Triggers on form submission
-cancel	-	                            Triggers on form reset
+| Event    | Parameters                  | Description	                |
+|----------|-----------------------------|-----------------------------|
+| `submit` | `data: Record<string, any>` | Triggers on form submission |
+| `cancel` | `-`                         | Triggers on form reset      |
 
 #### Slots
 
-Slot Name	                        Description
-default	Renders form items
-footer	                            Replaces default action buttons when useFooterSlot=true
-item.[field]	                    Dynamic slots bound to specific fields using their field property
+| Slot Name      | Description                                                       |
+|----------------|-------------------------------------------------------------------|
+| `footer`       | Replaces default action buttons when useFooterSlot=true           |
+| `item.[field]` | Dynamic slots bound to specific fields using their field property |
 
 ### Validation System
+
 Configure validation through required and validator properties:
 
 #### Required Field
+
 ```ts
 interface RequiredDescValidator {
     value: boolean
@@ -160,14 +171,16 @@ interface RequiredDescValidator {
     immediate?: boolean  // Default: true
 }
 ```
+
 #### Enhanced Validation
+
 ```ts
 interface InputValidator {
     validate: (
-      value: any,
-      success: () => void,
-      fail: (msg: string) => void,
-      props: MetaKeyComponentProps
+        value: any,
+        success: () => void,
+        fail: (msg: string) => void,
+        props: MetaKeyComponentProps
     ) => Promise<void>
 
     triggerType?: 'change' | 'blur'    // Default: 'change'
@@ -176,9 +189,11 @@ interface InputValidator {
     scope?: ('item' | 'submit')[]      // Default: ['item', 'submit']
 }
 ```
+
 Validation sequence: required checks execute before validator when both exist.
 
 ### Dependency Management
+
 Configure field dependencies using dependencies[]:
 
 ```ts
@@ -197,12 +212,13 @@ interface MetaConfigDependency {
         defaultValue?: Primitive | Array<Primitive>
         valueType?: DataType
         validator?: InputValidator
-        customOptions?: (field: string) => Promise<MetaOptionConfig[]>
+        options?: MetaOptionConfig[] | ((field: string) => Promise<MetaOptionConfig[]>)
     }
 }
 ```
 
 ### Data Relationships
+
 Define lightweight master-slave field relationships via keyDataEffect:
 
 ```js

@@ -2,6 +2,8 @@ import type {ComponentValue, ComponentValueType} from "./exhibit-component.ts";
 import type {Component} from "@vue/runtime-core";
 import type {InputValidator, RequiredDescValidator} from "./runtime-validate.ts";
 
+export type keyForString<T> = Extract<keyof T, string>
+
 // 配置整个活动周期
 export interface MetaConfig {
     [field: string]: MetaKeyConfig
@@ -18,7 +20,7 @@ export interface MetaKeyConfig {
     valueType?: ComponentValueType
     // 根据组件自定义
     validator?: InputValidator
-    readonly customOptions?: (field: keyof MetaConfig) => Promise<MetaOptionConfig[]>
+    options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)
     readonly dependencies?: MetaConfigDependency[]
 }
 
@@ -33,15 +35,11 @@ export interface MetaKeyComponentProps {
 
 export type MetaDependencyCondition = 'some' | 'not_in' | 'all'
 export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies'>
-export type MetaKeyConfigWithField = OmitDepMetaKeyConfig & { readonly field: Extract<keyof MetaConfig, string> }
+export type MetaKeyConfigWithField = OmitDepMetaKeyConfig & { readonly field: keyForString<MetaConfig> }
 
 
 export interface MetaOptionConfig {
-    name: number
-    id?: string
-    value?: number
-    parentId?: string
-    hideData?: string
+    [key: string]: string | number
 }
 
 export interface MetaConfigDependency {
