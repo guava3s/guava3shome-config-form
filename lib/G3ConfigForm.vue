@@ -12,7 +12,7 @@
                      :tabindex="index"
                      v-model="keyForValues[item.field]"
                      v-bind="item.componentProps">
-            <slot :name="item.field" :scope="item.componentProps"></slot>
+            <slot :name="item.field" :scope="deepClone(item)"></slot>
           </component>
           <div class="g3-config-form-error" :style="{maxHeight: `${keyForValidate[item.field].success?0:38}px`}">
             {{ keyForValidate[item.field].message }}
@@ -251,16 +251,20 @@ export default defineComponent({
     }
 
     async function submit(): Promise<void> {
-      await new Promise<void>((resolve, reject) => {
-        if (hasFunction(props.beforeSubmit)) {
-          props.beforeSubmit(resolve, reject)
-        } else {
-          resolve()
-        }
-      })
-      const success = await processValidate(keyConfigList.value, TriggerScope.submit)
-      // 提交数据
-      success && !props.useFooterSlot && emit('submit', deepClone(keyForValues.value))
+      try {
+        await new Promise<void>((resolve, reject) => {
+          if (hasFunction(props.beforeSubmit)) {
+            props.beforeSubmit(resolve, reject)
+          } else {
+            resolve()
+          }
+        })
+        const success = await processValidate(keyConfigList.value, TriggerScope.submit)
+        // 提交数据
+        success && !props.useFooterSlot && emit('submit', deepClone(keyForValues.value))
+      } catch (e) {
+        console.log('>> G3ConfigForm Error: ', e)
+      }
     }
 
     function resetScopeForm(): void {
@@ -276,7 +280,8 @@ export default defineComponent({
       submit,
       resetScopeForm,
       renderComponentMap,
-      keyForValidate
+      keyForValidate,
+      deepClone
     }
   }
 })

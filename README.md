@@ -41,7 +41,16 @@ app.mount('#app')
 ```vue
 
 <template>
-  <G3ConfigForm :keyConfig="G3ConfigForm" @submit="submit"/>
+  <G3ConfigForm :keyConfig="G3ConfigForm" :before-submit="beforeSubmit" @submit="submit">
+    <!--子组件拓展，插槽名即字段名 -->
+    <template #gender="data">
+      <el-option v-for="(item,i) in data.scope.options"
+                 :key="i"
+                 :label="item.label"
+                 :value="item.value">
+      </el-option>
+    </template>
+  </G3ConfigForm>
 </template>
 
 <script>
@@ -109,13 +118,37 @@ app.mount('#app')
                 }
               }
             ]
+          },
+          gender: {
+            title: 'Gender',
+            display: true,
+            required: {
+              value: true,
+              message: 'Gender cannot be empty.'
+            },
+            // 引用第三方组件，也可进行手动封装
+            component: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
+            order: 3,
+            valueType: 'number',
+            // 第三方组件的props
+            componentProps: {
+              placeholder: 'Please select your gender',
+            },
+            options: [
+              {label: 'Male', value: 1},
+              {label: 'Female', value: 0}
+            ]
           }
         }
       }
     },
     methods: {
+      beforeSubmit(resolve, reject) {
+        // 提交前 eg: 遮罩层/dom联动/其他请求...
+        resolve()
+      },
       submit(data) {
-        // do request
+        // data为校验成功后的数据
       }
     }
   }

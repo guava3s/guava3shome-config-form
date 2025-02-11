@@ -43,7 +43,16 @@ app.mount('#app')
 ```vue
 
 <template>
-  <G3ConfigForm :keyConfig="G3ConfigForm" @submit="submit"/>
+  <G3ConfigForm :keyConfig="G3ConfigForm" :before-submit="beforeSubmit" @submit="submit">
+    <!--Subcompoonent extension, slot name is equivalent to field name -->
+    <template #gender="data">
+      <el-option v-for="(item,i) in data.scope.options"
+                 :key="i"
+                 :label="item.label"
+                 :value="item.value">
+      </el-option>
+    </template>
+  </G3ConfigForm>
 </template>
 
 <script>
@@ -110,13 +119,37 @@ app.mount('#app')
                 }
               }
             ]
+          },
+          gender: {
+            title: 'Gender',
+            display: true,
+            required: {
+              value: true,
+              message: 'Gender cannot be empty.'
+            },
+            // Referencing third-party components can also be manually encapsulated
+            component: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
+            order: 3,
+            valueType: 'number',
+            // Props of third-party components
+            componentProps: {
+              placeholder: 'Please select your gender',
+            },
+            options: [
+              {label: 'Male', value: 1},
+              {label: 'Female', value: 0}
+            ]
           }
         }
       }
     },
     methods: {
+      beforeSubmit(resolve, reject) {
+        // Before submission: Mask layer/DOM linkage/Other requests
+        resolve()
+      },
       submit(data) {
-        // Handle form submission
+        // The data is the data after successful verification
       }
     }
   }
