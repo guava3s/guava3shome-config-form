@@ -51,7 +51,7 @@ import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
 import {G3Context} from "guava3shome-h5-utils"
 import {deepClone} from "guava3shome-h5-utils/dist/object-util"
-import {TriggerScope} from "./typings/runtime-validate.ts";
+import {TriggerScope} from "./typings/runtime-validate.ts"
 
 export default defineComponent({
   props: {
@@ -284,7 +284,7 @@ export default defineComponent({
 </script>
 
 
-<style scoped>
+<style>
 
 
 .g3-config-form-props-wrapper {

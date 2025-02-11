@@ -12,7 +12,7 @@ const scopeConfig = {
       title: 'Test1',
       display: true,
       required: {
-        value: false,
+        value: true,
         message: 'Please input name name name',
         // immediate: false
       },
@@ -49,10 +49,10 @@ const scopeConfig = {
     },
     password: {
       title: 'Test2',
-      display: false,
+      display: true,
       required: {
         value: true,
-        message: 'Please input password'
+        message: 'Please input test2'
       },
       component: () => import('../lib/component/G3Input.vue'),
       order: 2,
@@ -62,20 +62,38 @@ const scopeConfig = {
         type: 'password',
         disable: false
       },
-      dependencies: [
-        {
-          depField: 'name',
-          depCondition: 'SOME',
-          depValues: ['SYSTEM'],
-          priority: 1,
-          reset: {
-            display: false,
-            required: {
-              value: false,
-            },
-          }
-        }
-      ]
+    },
+    test3: {
+      title: 'Test3',
+      display: true,
+      required: {
+        value: true,
+        message: 'Please input test3'
+      },
+      component: () => import('../lib/component/G3Input.vue'),
+      order: 2,
+      valueType: 'STRING',
+      componentProps: {
+        placeholder: 'your password',
+        type: 'password',
+        disable: false
+      },
+    },
+    test4: {
+      title: 'Test4',
+      display: true,
+      required: {
+        value: true,
+        message: 'Please input test4'
+      },
+      component: () => import('../lib/component/G3Input.vue'),
+      order: 2,
+      valueType: 'STRING',
+      componentProps: {
+        placeholder: 'your password',
+        type: 'password',
+        disable: false
+      },
     }
   }
 }
@@ -86,3 +104,10 @@ const scopeConfig = {
     <G3ConfigForm :key-config="scopeConfig.scope1"></G3ConfigForm>
   </div>
 </template>
+
+<style scoped>
+:deep(.g3-config-form-items) {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+</style>
