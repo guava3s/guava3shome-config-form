@@ -1,5 +1,5 @@
 import {ref} from "vue";
-import type {MetaConfig, MetaKeyConfig, MetaKeyConfigWithField} from "../typings/meta-config.ts";
+import type {keyForString, MetaConfig, MetaKeyConfig, MetaKeyConfigWithField} from "../typings/meta-config.ts";
 import type {RequiredDescValidator, ValidateResultParams} from "../typings/runtime-validate.ts";
 import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
@@ -9,17 +9,17 @@ const empty_prompt: string = 'The field value cannot be empty.'
 
 export default function useComponentValidator({context}: InternalContext) {
 
-    const keyForValidate = ref<Record<keyof MetaConfig, ValidateResultParams>>({})
-    const keyForTimer: Record<keyof MetaConfig, number> = {}
+    const keyForValidate = ref<Record<keyForString<MetaConfig>, ValidateResultParams>>({})
+    const keyForTimer: Record<keyForString<MetaConfig>, number> = {}
 
     // 默认校验: return success?
-    function defaultValidate(field: keyof MetaConfig, required: RequiredDescValidator): boolean {
+    function defaultValidate(field: keyForString<MetaConfig>, required: RequiredDescValidator): boolean {
         const fieldValue = context.keyForValues.value[field];
         return required.value ? ![null, undefined, ''].includes(fieldValue) : true
     }
 
     // required 与 validator 相互独立，required < validator
-    function fillValidate(field: Extract<keyof MetaConfig, string>, config: MetaKeyConfig): void {
+    function fillValidate(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
         config.required.value ??= true
         config.required.immediate ??= true
         if (config.required.value) {
