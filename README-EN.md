@@ -32,6 +32,7 @@ Global Registration
 import {createApp} from 'vue'
 import App from './App.vue'
 import G3ConfigForm from "guava3shome-config-form"
+import 'guava3shome-config-form/dist/index.css'
 
 const app = createApp(App)
 app.use(G3ConfigForm)
@@ -174,7 +175,6 @@ app.mount('#app')
 | `keyData`       | `Object`   | `{}`     | Initial form data (overrides keyConfig defaults when provided)                                           |
 | `readonly`      | `Boolean`  | `false`  | Read-only mode toggle                                                                                    |
 | `keyDataEffect` | `Object`   | `{}`     | Master-slave field relationships: {[masterField: string]: Array<{slaveField: string, valueMap: Object}>} |
-| `useFooterSlot` | `Boolean`  | `false`  | Enables custom footer slot replacement                                                                   |
 | `beforeSubmit`  | `Function` | `()=>{}` | Pre-submission hook (executes before validation)                                                         
 
 #### Events

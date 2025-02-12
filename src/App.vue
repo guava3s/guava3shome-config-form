@@ -6,6 +6,7 @@ import {
   TriggerType,
 } from "../lib/typings/runtime-validate.ts";
 
+
 const scopeConfig = {
   'scope1': {
     name: {
@@ -24,26 +25,22 @@ const scopeConfig = {
         type: 'text',
         disable: false
       },
-      validator: {
-        triggerType: TriggerType.change,
-        triggerDelay: 200,
-        validate: async (value: string, success: SuccessCallback, fail: FailCallback) => {
-          if (value.length > 100) {
-            fail('The username length should not exceed 10.')
-            return
-          }
+      validator: async (value: string, success: SuccessCallback, fail: FailCallback) => {
+        if (value.length > 100) {
+          fail('The username length should not exceed 10.')
+          return
+        }
 
-          await new Promise((resolve) => {
-            console.log('发起请求')
-            setTimeout(() => {
-              resolve(1)
-            }, 3000)
-          })
-          if (value.includes('fu')) {
-            fail('don\'t fu')
-          } else {
-            success(true)
-          }
+        await new Promise((resolve) => {
+          console.log('发起请求')
+          setTimeout(() => {
+            resolve(1)
+          }, 3000)
+        })
+        if (value.includes('fu')) {
+          fail('don\'t fu')
+        } else {
+          success(true)
         }
       },
     },
@@ -94,20 +91,51 @@ const scopeConfig = {
         type: 'password',
         disable: false
       },
+      gender: {
+        title: 'Gender',
+        display: true,
+        required: {
+          value: true,
+          message: 'Gender cannot be empty.'
+        },
+        // 引用第三方组件，也可进行手动封装
+        component: {
+          content: () => import('../src/MySelect.vue'),
+          componentProps: {
+            placeholder: 'Please select your gender',
+          },
+          children: {
+            content: () => import('../src/MySelectOptions.vue'),
+            componentProps: {
+              placeholder: 'Please select your gender',
+            },
+          }
+        },
+        order: 3,
+        valueType: 'number',
+        options: [
+          {label: 'Male', value: 1},
+          {label: 'Female', value: 0}
+        ]
+      }
     }
   }
 }
 </script>
 
 <template>
-  <div>
-    <G3ConfigForm :key-config="scopeConfig.scope1"></G3ConfigForm>
+  <div style="width: 600px">
+    <G3ConfigForm :key-config="scopeConfig.scope1">
+      <template #footer>
+        hello
+      </template>
+    </G3ConfigForm>
   </div>
 </template>
 
 <style scoped>
 :deep(.g3-config-form-items) {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
 }
 </style>

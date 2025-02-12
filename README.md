@@ -30,6 +30,7 @@ yarn add guava3shome-config-form
 import {createApp} from 'vue'
 import App from './App.vue'
 import G3ConfigForm from "guava3shome-config-form"
+import 'guava3shome-config-form/dist/index.css'
 
 const app = createApp(App)
 app.use(G3ConfigForm)
@@ -174,7 +175,6 @@ app.mount('#app')
 | `keyData`       | `Object`   | `{}`     | 表单项的初始数据，若提供了该字段则使用初始数据，否则使用 `keyConfig` 中的默认值。                                                                             |
 | `readonly`      | `Boolean`  | `false`  | 是否为只读模式，默认为 `false`，在该模式下表单项不可编辑。                                                                                           |
 | `keyDataEffect` | `Object`   | `{}`     | 字段数据之间的影响规则，格式为 `{[masterField: string]: Array<{slaveField: string, valueMap: {mFValue1: sFValue1, ...}}>`，指定数据变化时如何影响其他字段。 |
-| `useFooterSlot` | `Boolean`  | `false`  | 是否使用自定义底部插槽，默认为 `false`。设置为 `true` 时，将替代默认的提交和取消按钮。                                                                         |
 | `beforeSubmit`  | `Function` | `()=>{}` | 在表单提交前执行函数（此时还未进行校验）                                                                                                        |
 
 ### Event

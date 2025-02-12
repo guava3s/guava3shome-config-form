@@ -4,6 +4,7 @@ import type {RequiredDescValidator, ValidateResultParams} from "../typings/runti
 import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
 import {deepClone} from "guava3shome-h5-utils/dist/object-util";
+import {hasFunction} from "./type-check.ts";
 
 const empty_prompt: string = 'The field value cannot be empty.'
 
@@ -34,9 +35,16 @@ export default function useComponentValidator({context}: InternalContext) {
         if (!config.validator) {
             return
         }
+
+        if (hasFunction(config.validator)) {
+            const validateFunc = config.validator
+            config.validator = {validate: validateFunc}
+        }
+
         if (!config.validator.validate) {
             throw new Error("The validator object must have a validate validation function.")
         }
+
 
         config.validator.triggerType ??= TriggerType.change
         config.validator.triggerDelay ??= (config.validator.triggerType === TriggerType.change ? 200 : 0)

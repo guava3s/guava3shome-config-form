@@ -21,11 +21,10 @@
 
       </div>
     </div>
-    <div v-if="!readonly && !useFooterSlot" class="g3-config-form-footer">
+    <div v-if="!readonly" class="g3-config-form-footer">
       <button @click="submit">submit</button>
-      <button @click="resetScopeForm">cancel</button>
     </div>
-    <slot v-else-if="!readonly && useFooterSlot" name="footer"></slot>
+    <slot v-else-if="!readonly && $slots.footer" name="footer"></slot>
   </div>
 </template>
 
@@ -93,18 +92,13 @@ export default defineComponent({
         return {}
       }
     },
-    useFooterSlot: {
-      type: Boolean,
-      required: false,
-      default: false
-    },
     beforeSubmit: {
       type: [Boolean, Function],
       required: false,
       default: false
     }
   },
-  emits: ['submit', 'cancel'],
+  emits: ['submit'],
   setup(props, {emit, expose}) {
 
     const ctx = new G3Context(props)
@@ -267,18 +261,16 @@ export default defineComponent({
       }
     }
 
-    function resetScopeForm(): void {
+    function reset(): void {
       Object.keys(keyForValues.value).forEach(key => keyForValues.value[key] = '')
-      !props.useFooterSlot && emit('cancel')
     }
 
-    expose({resetScopeForm, submit})
+    expose({reset, submit})
 
     return {
       keyConfigList,
       keyForValues,
       submit,
-      resetScopeForm,
       renderComponentMap,
       keyForValidate,
       deepClone
@@ -316,6 +308,13 @@ export default defineComponent({
   margin: 5px 0;
   overflow: hidden;
   transition: all 100ms ease-in;
+}
+
+.g3-config-form-footer button {
+  border-radius: 15px;
+  height: 50px;
+  width: 100%;
+  border: 1px solid #000000;
 }
 
 </style>

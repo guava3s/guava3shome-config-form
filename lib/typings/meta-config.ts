@@ -1,6 +1,6 @@
 import type {ComponentValue, ComponentValueType} from "./exhibit-component.ts";
 import type {Component} from "@vue/runtime-core";
-import type {InputValidator, RequiredDescValidator} from "./runtime-validate.ts";
+import type {InputValidator, RequiredDescValidator, ValidateFunction} from "./runtime-validate.ts";
 
 export type keyForString<T> = Extract<keyof T, string>
 
@@ -19,7 +19,7 @@ export interface MetaKeyConfig {
     defaultValue?: ComponentValue
     valueType?: ComponentValueType
     // 根据组件自定义
-    validator?: InputValidator
+    validator?: ValidateFunction | InputValidator
     options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)
     readonly dependencies?: MetaConfigDependency[]
 }

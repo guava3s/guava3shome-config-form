@@ -30,8 +30,10 @@ export interface RequiredDescValidator {
 export type SuccessCallback = (value: unknown) => void
 export type FailCallback = (value: unknown) => void
 
+export type ValidateFunction = (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+
 export interface InputValidator {
-    validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+    validate: ValidateFunction
     triggerType?: TriggerType
     triggerDelay?: number
     // Execute verification immediately after the form is displayed
