@@ -99,7 +99,7 @@ export default defineComponent({
     }
   },
   emits: ['submit'],
-  setup(props, {emit, expose}) {
+  setup(props, {emit, expose, slots}) {
 
     const ctx = new G3Context(props)
 
@@ -172,7 +172,7 @@ export default defineComponent({
             .map(item => triggerReset(item).data)
 
         // After initialization, verify the items that need to be verified immediately
-        processValidate(keyConfigList.value.filter(obj => obj.required.immediate && obj.validator?.immediate))
+        processValidate(keyConfigList.value.filter(obj => obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate))
       }
     }, {immediate: true, deep: true})
 
@@ -255,7 +255,7 @@ export default defineComponent({
         })
         const success = await processValidate(keyConfigList.value, TriggerScope.submit)
         // 提交数据
-        success && !props.useFooterSlot && emit('submit', deepClone(keyForValues.value))
+        success && !slots.footer && emit('submit', deepClone(keyForValues.value))
       } catch (e) {
         console.log('>> G3ConfigForm Error: ', e)
       }
@@ -288,8 +288,16 @@ export default defineComponent({
   margin-bottom: 20px;
 }
 
+.g3-config-form-footer {
+  display: flex;
+}
+
 .g3-config-form-footer > button {
   margin: 10px;
+  border-radius: 15px;
+  height: 50px;
+  width: 100%;
+  border: 1px solid #000000;
 }
 
 .g3-config-form-props {
@@ -310,11 +318,5 @@ export default defineComponent({
   transition: all 100ms ease-in;
 }
 
-.g3-config-form-footer button {
-  border-radius: 15px;
-  height: 50px;
-  width: 100%;
-  border: 1px solid #000000;
-}
 
 </style>
