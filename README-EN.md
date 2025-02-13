@@ -24,6 +24,14 @@ npm install guava3shome-config-form
 yarn add guava3shome-config-form
 ```
 
+### Key Features
+
+- Dynamic Form Rendering: Renders form items based on keyConfig configurations
+- Field Dependencies: Supports dynamic dependencies between fields with automatic updates
+- Validation System: Implements required field validation and custom validation rules
+- Customizable Slots: Provides flexible slot mechanisms for content customization
+- Form Actions: Built-in submit/reset functionality with event communication
+
 ### Component Integration
 
 Global Registration
@@ -157,15 +165,7 @@ app.mount('#app')
 </script>
 ```
 
-### Key Features
-
-- Dynamic Form Rendering: Renders form items based on keyConfig configurations
-- Field Dependencies: Supports dynamic dependencies between fields with automatic updates
-- Validation System: Implements required field validation and custom validation rules
-- Customizable Slots: Provides flexible slot mechanisms for content customization
-- Form Actions: Built-in submit/reset functionality with event communication
-
-### Component Specifications
+## Component Specifications
 
 #### Props
 
@@ -188,8 +188,27 @@ app.mount('#app')
 
 | Slot Name      | Description                                                       |
 |----------------|-------------------------------------------------------------------|
-| `footer`       | Replaces default action buttons when useFooterSlot=true           |
+| `FOOTER`       | Replaces default action buttons when useFooterSlot=true           |
 | `item.[field]` | Dynamic slots bound to specific fields using their field property |
+
+### Data Relationships
+
+Define lightweight master-slave field relationships via keyDataEffect:
+
+```js
+keyDataEffect = {
+    masterField: [{
+        slaveField: 'slaveField1',
+        valueMap: {
+            'value1': 'slaveValue1',
+            'value2': 'slaveValue2'
+        }
+    }]
+};
+```
+
+
+## Form configuration field parsing
 
 ### Validation System
 
@@ -216,10 +235,10 @@ interface InputValidator {
         props: MetaKeyComponentProps
     ) => Promise<void>
 
-    triggerType?: 'change' | 'blur'    // Default: 'change'
-    triggerDelay?: number              // Debounce time (ms), default: 200
-    immediate?: boolean                // Default: true
-    scope?: ('item' | 'submit')[]      // Default: ['item', 'submit']
+    triggerType?: 'change' | 'blur'             // Default: 'change'
+    triggerDelay?: number                       // Debounce time (ms), default: 200
+    immediate?: boolean                         // Default: true
+    scope?: 'single' | 'propagation'            // Default: single
 }
 ```
 
@@ -244,24 +263,9 @@ interface MetaConfigDependency {
         order: number
         defaultValue?: Primitive | Array<Primitive>
         valueType?: DataType
+        // ValidFunction will eventually be converted to the main type InputValidator
         validator?: InputValidator
         options?: MetaOptionConfig[] | ((field: string) => Promise<MetaOptionConfig[]>)
     }
 }
-```
-
-### Data Relationships
-
-Define lightweight master-slave field relationships via keyDataEffect:
-
-```js
-keyDataEffect = {
-    masterField: [{
-        slaveField: 'slaveField1',
-        valueMap: {
-            'value1': 'slaveValue1',
-            'value2': 'slaveValue2'
-        }
-    }]
-};
 ```

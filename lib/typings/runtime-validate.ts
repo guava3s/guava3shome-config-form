@@ -6,8 +6,10 @@ export enum TriggerType {
 }
 
 export enum TriggerScope {
-    item = 'item',
-    submit = 'submit'
+    // 对自身进行校验
+    single = 'single',
+    // 对所有的值进行校验
+    propagation = 'propagation'
 }
 
 export interface ValidateResult {
@@ -38,5 +40,5 @@ export interface InputValidator {
     triggerDelay?: number
     // Execute verification immediately after the form is displayed
     immediate?: boolean
-    scope?: TriggerScope[]
+    scope?: TriggerScope
 }

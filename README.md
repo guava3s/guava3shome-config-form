@@ -157,7 +157,7 @@ app.mount('#app')
 
 ```
 
-## Features
+### Features
 
 - **动态渲染表单项**：根据 `keyConfig` 配置动态渲染表单项。
 - **字段依赖**：支持字段间的动态依赖关系，数据变化时自动更新相关字段。
@@ -165,7 +165,7 @@ app.mount('#app')
 - **自定义插槽**：提供灵活的插槽机制，允许用户自定义内容。
 - **提交与重置功能**：提供表单提交和重置功能，并通过事件与父组件通信。
 
-## Component Detail
+## 组件详情
 
 ### Props
 
@@ -186,12 +186,31 @@ app.mount('#app')
 
 ### Slot
 
-| 插槽名称         | 说明                                              |
-|--------------|-------------------------------------------------|
-| `default`    | 用于渲染表单项。                                        |
-| `footer`     | 如果 `useFooterSlot` 为 `true`，则使用此插槽替代默认的提交和取消按钮。 |
-| `item.field` | 动态生成的插槽，依据每个字段的 `field` 属性名来绑定。                 |
+| 插槽名称           | 说明                                              |
+|----------------|-------------------------------------------------|
+| `FOOTER` | 如果 `useFooterSlot` 为 `true`，则使用此插槽替代默认的提交和取消按钮。 |
+| `item.field`   | 动态生成的插槽，依据每个字段的 `field` 属性名来绑定。                 |
 
+### Data Effect
+
+通过 `keyDataEffect` props属性，定义主从字段之间的依赖关系。例如，当主字段的值变化时，可以触发从字段的变化；是轻量级的依赖。
+
+```js
+ keyDataEffect = {
+    masterField: [
+        {
+            slaveField: 'slaveField1',
+            valueMap: {
+                'value1': 'slaveValue1',
+                'value2': 'slaveValue2',
+            },
+        },
+    ],
+};
+```
+
+
+## 表单配置字段解析
 ### Validate
 
 表单校验从可以从两个属性(required/validator)进行配置
@@ -251,10 +270,10 @@ interface InputValidator {
 
     /**
      * 触发作用域，校验仅作用于item/submit时有效，默认值 [item, submit]
-     * item： 表单项，若无配置item，则该表单项值变化时不会触发校验
-     * submit： 提交表单时
+     * single： 表单项，若无配置item，则该表单项值变化时不会触发校验
+     * propagation： 提交表单时
      */
-    scope?: TriggerScope[]
+    scope?: TriggerScope
 }
 ```
 
@@ -337,8 +356,9 @@ interface MetaConfigDependency {
 
         /**
          * 校验器
+         * ValidateFunction最终会转换为主要类型InputValidator
          */
-        validator?: InputValidator
+        validator?: InputValidator | ValidateFunction
 
         /**
          * 用于动态获取字典值
@@ -346,22 +366,4 @@ interface MetaConfigDependency {
         options?: MetaOptionConfig[] | ((field: keyof MetaConfig) => Promise<MetaOptionConfig[]>)
     }
 }
-```
-
-### Data Effect
-
-通过 `keyDataEffect` props属性，定义主从字段之间的依赖关系。例如，当主字段的值变化时，可以触发从字段的变化；是轻量级的依赖。
-
-```js
- keyDataEffect = {
-    masterField: [
-        {
-            slaveField: 'slaveField1',
-            valueMap: {
-                'value1': 'slaveValue1',
-                'value2': 'slaveValue2',
-            },
-        },
-    ],
-};
 ```

@@ -18,8 +18,9 @@ export interface MetaKeyConfig {
     order: number
     defaultValue?: ComponentValue
     valueType?: ComponentValueType
-    // 根据组件自定义
+    // 根据组件自定义 final: InputValidator
     validator?: ValidateFunction | InputValidator
+    // final: MetaOptionConfig[]
     options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)
     readonly dependencies?: MetaConfigDependency[]
 }

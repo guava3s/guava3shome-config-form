@@ -14,8 +14,8 @@ const scopeConfig = {
       display: true,
       required: {
         value: true,
-        message: 'Please input name name name',
-        // immediate: false
+        message: 'Please input name',
+        immediate: false
       },
       component: () => import('../lib/component/G3Input.vue'),
       order: 1,
@@ -49,7 +49,8 @@ const scopeConfig = {
       display: true,
       required: {
         value: true,
-        message: 'Please input test2'
+        message: 'Please input test2',
+        immediate: false
       },
       component: () => import('../lib/component/G3Input.vue'),
       order: 2,
@@ -60,71 +61,71 @@ const scopeConfig = {
         disable: false
       },
     },
-    test3: {
-      title: 'Test3',
-      display: true,
-      required: {
-        value: true,
-        message: 'Please input test3'
-      },
-      component: () => import('../lib/component/G3Input.vue'),
-      order: 2,
-      valueType: 'STRING',
-      componentProps: {
-        placeholder: 'your password',
-        type: 'password',
-        disable: false
-      },
-    },
-    test4: {
-      title: 'Test4',
-      display: true,
-      required: {
-        value: true,
-        message: 'Please input test4'
-      },
-      component: () => import('../lib/component/G3Input.vue'),
-      order: 2,
-      valueType: 'STRING',
-      componentProps: {
-        placeholder: 'your password',
-        type: 'password',
-        disable: false
-      },
-      gender: {
-        title: 'Gender',
-        display: true,
-        required: {
-          value: true,
-          message: 'Gender cannot be empty.'
-        },
-        // 引用第三方组件，也可进行手动封装
-        component: {
-          content: () => import('../src/MySelect.vue'),
-          componentProps: {
-            placeholder: 'Please select your gender',
-          },
-          children: {
-            content: () => import('../src/MySelectOptions.vue'),
-            componentProps: {
-              placeholder: 'Please select your gender',
-            },
-          }
-        },
-        order: 3,
-        valueType: 'number',
-        options: [
-          {label: 'Male', value: 1},
-          {label: 'Female', value: 0}
-        ]
-      }
-    }
+    // test3: {
+    //   title: 'Test3',
+    //   display: true,
+    //   required: {
+    //     value: true,
+    //     message: 'Please input test3'
+    //   },
+    //   component: () => import('../lib/component/G3Input.vue'),
+    //   order: 2,
+    //   valueType: 'STRING',
+    //   componentProps: {
+    //     placeholder: 'your password',
+    //     type: 'password',
+    //     disable: false
+    //   },
+    // },
+    // test4: {
+    //   title: 'Test4',
+    //   display: true,
+    //   required: {
+    //     value: true,
+    //     message: 'Please input test4'
+    //   },
+    //   component: () => import('../lib/component/G3Input.vue'),
+    //   order: 2,
+    //   valueType: 'STRING',
+    //   componentProps: {
+    //     placeholder: 'your password',
+    //     type: 'password',
+    //     disable: false
+    //   },
+    //   gender: {
+    //     title: 'Gender',
+    //     display: true,
+    //     required: {
+    //       value: true,
+    //       message: 'Gender cannot be empty.'
+    //     },
+    //     // 引用第三方组件，也可进行手动封装
+    //     component: {
+    //       content: () => import('../src/MySelect.vue'),
+    //       componentProps: {
+    //         placeholder: 'Please select your gender',
+    //       },
+    //       children: {
+    //         content: () => import('../src/MySelectOptions.vue'),
+    //         componentProps: {
+    //           placeholder: 'Please select your gender',
+    //         },
+    //       }
+    //     },
+    //     order: 3,
+    //     valueType: 'number',
+    //     options: [
+    //       {label: 'Male', value: 1},
+    //       {label: 'Female', value: 0}
+    //     ]
+    //   }
+    // }
   }
 }
 </script>
 
 <template>
-  <div style="width: 600px">
+  <div style="max-width: 600px">
     <G3ConfigForm :key-config="scopeConfig.scope1">
       <template #footer>
         hello
@@ -136,6 +137,6 @@ const scopeConfig = {
 <style scoped>
 :deep(.g3-config-form-items) {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
 }
 </style>

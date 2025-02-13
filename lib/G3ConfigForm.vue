@@ -24,7 +24,7 @@
     <div v-if="!readonly" class="g3-config-form-footer">
       <button @click="submit">submit</button>
     </div>
-    <slot v-else-if="!readonly && $slots.footer" name="footer"></slot>
+    <slot v-else-if="!readonly && $slots.FOOTER" name="FOOTER"></slot>
   </div>
 </template>
 
@@ -177,8 +177,18 @@ export default defineComponent({
     }, {immediate: true, deep: true})
 
 
+    let previousKeyForValues = JSON.parse(JSON.stringify(keyForValues.value))
     // core 监听表单输入值
-    watch(keyForValues, async () => {
+    watch(keyForValues, (newValue) => {
+
+      const changeKeys: { [key: string]: boolean } = {}
+      for (const key in newValue) {
+        if (newValue[key] !== previousKeyForValues[key]) {
+          changeKeys[key] = true
+        }
+      }
+      previousKeyForValues = JSON.parse(JSON.stringify(newValue))
+
       let hasChange = false
 
       const reduceList = keyConfigList.value.map(item => {
@@ -191,14 +201,15 @@ export default defineComponent({
         keyConfigList.value = reduceList
       }
 
-      await nextTick()
-      if (disableEffect.value.includes(true)) {
-        disableEffect.value.length = 0
-        return
-      }
-      triggerDataEffect(keyConfigList.value.map(item => item.field))
+      nextTick(() => {
+        if (disableEffect.value.includes(true)) {
+          disableEffect.value.length = 0
+          return
+        }
+        triggerDataEffect(keyConfigList.value.map(item => item.field))
+      })
 
-      processValidate(keyConfigList.value)
+      processValidate(keyConfigList.value, changeKeys)
 
     }, {deep: true})
 
@@ -253,9 +264,9 @@ export default defineComponent({
             resolve()
           }
         })
-        const success = await processValidate(keyConfigList.value, TriggerScope.submit)
+        const success = await processValidate(keyConfigList.value)
         // 提交数据
-        success && !slots.footer && emit('submit', deepClone(keyForValues.value))
+        success && !slots.FOOTER && emit('submit', deepClone(keyForValues.value))
       } catch (e) {
         console.log('>> G3ConfigForm Error: ', e)
       }

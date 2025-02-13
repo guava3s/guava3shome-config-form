@@ -1,6 +1,11 @@
 import {ref} from "vue";
 import type {keyForString, MetaConfig, MetaKeyConfig, MetaKeyConfigWithField} from "../typings/meta-config.ts";
-import type {RequiredDescValidator, ValidateResultParams} from "../typings/runtime-validate.ts";
+import type {
+    InputValidator,
+    RequiredDescValidator,
+    ValidateFunction,
+    ValidateResultParams
+} from "../typings/runtime-validate.ts";
 import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
 import {deepClone} from "guava3shome-h5-utils/dist/object-util";
@@ -49,17 +54,18 @@ export default function useComponentValidator({context}: InternalContext) {
         config.validator.triggerType ??= TriggerType.change
         config.validator.triggerDelay ??= (config.validator.triggerType === TriggerType.change ? 200 : 0)
         config.validator.immediate ??= true
-        config.validator.scope ??= [TriggerScope.item, TriggerScope.submit]
+        config.validator.scope ??= TriggerScope.single
     }
 
     async function validateItem(config: MetaKeyConfigWithField): Promise<boolean> {
         const kfV = keyForValidate.value[config.field]
         const defaultSuccess = defaultValidate(config.field, config.required)
         kfV.success = defaultSuccess
-        !defaultSuccess && (kfV.message = config.required.message)
-        if (kfV.controller) {
-            kfV.controller.abort()
+        if (!defaultSuccess) {
+            kfV.message = config.required.message
+            return kfV.success
         }
+        kfV.controller && kfV.controller.abort()
         if (config.validator && context.keyForValues.value[config.field]) {
             kfV.controller = new AbortController()
             try {
@@ -71,7 +77,7 @@ export default function useComponentValidator({context}: InternalContext) {
                     }
                     kfV.controller?.signal.addEventListener('abort', onAbort)
 
-                    config.validator?.validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.componentProps)
+                    toInputValidator(config.validator).validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.componentProps)
                 })
                 kfV.success = true
             } catch (e) {
@@ -87,24 +93,31 @@ export default function useComponentValidator({context}: InternalContext) {
     }
 
     // 执行change校验
-    async function processValidate(configList: MetaKeyConfigWithField[], scope: TriggerScope = TriggerScope.item): Promise<boolean> {
-        const result = await Promise.all(
-            configList.filter(cl => {
-                const validator = cl.validator
-                return validator ? validator.triggerType === TriggerType.change && validator.scope?.includes(scope) : true
-            }).map(config => {
+    async function processValidate(configList: MetaKeyConfigWithField[], changeKeys: {
+        [key: string]: boolean
+    } = null): Promise<boolean> {
+        let list: MetaKeyConfigWithField[] = configList
+        if (changeKeys) {
+            list = configList.filter(item => changeKeys[item.field])
+            if (list.some(item => item.validator && !hasFunction(item.validator) && item.validator.scope === TriggerScope.propagation)) {
+                list = configList
+            }
+        }
+
+        const result = await Promise.all(list.map(config => {
+                const {validator, field} = config
                 return new Promise(async (resolve) => {
-                    if (keyForTimer[config.field]) {
-                        clearTimeout(keyForTimer[config.field])
+                    if (keyForTimer[field]) {
+                        clearTimeout(keyForTimer[field])
                     }
-                    if ((config.validator?.triggerDelay || 0) <= 0) {
+                    if ((toInputValidator(validator)?.triggerDelay || 0) <= 0) {
                         const success = await validateItem(config)
                         resolve(success)
                     } else {
-                        keyForTimer[config.field] = setTimeout(async () => {
+                        keyForTimer[field] = setTimeout(async () => {
                             const success = await validateItem(config)
                             resolve(success)
-                        }, config.validator?.triggerDelay)
+                        }, toInputValidator(validator)?.triggerDelay)
                     }
                 })
             })
@@ -112,6 +125,11 @@ export default function useComponentValidator({context}: InternalContext) {
 
         return !result.includes(false)
     }
+
+    function toInputValidator(validator: ValidateFunction | InputValidator): validator is InputValidator {
+        return validator
+    }
+
 
     return {
         keyForValidate,
