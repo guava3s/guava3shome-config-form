@@ -14,7 +14,7 @@ const scopeConfig = {
       display: true,
       required: {
         value: true,
-        message: 'Please input name',
+        message: 'Please input name,Please input namePlease input name,Please input name,Please input name,Please input namePlease input name,Please input name,Please input name,Please input name,Please input name,Please input name',
         immediate: false
       },
       component: () => import('../lib/component/G3Input.vue'),

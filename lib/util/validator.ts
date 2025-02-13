@@ -61,28 +61,30 @@ export default function useComponentValidator({context}: InternalContext) {
         const kfV = keyForValidate.value[config.field]
         const defaultSuccess = defaultValidate(config.field, config.required)
         kfV.success = defaultSuccess
+        kfV.controller && kfV.controller.abort()
         if (!defaultSuccess) {
             kfV.message = config.required.message
             return kfV.success
         }
-        kfV.controller && kfV.controller.abort()
         if (config.validator && context.keyForValues.value[config.field]) {
             kfV.controller = new AbortController()
             try {
                 await new Promise((resolve, reject) => {
                     const onAbort = () => {
-                        resolve(true)
+                        reject('ABORT PROMISE')
                         kfV.controller?.signal.removeEventListener('abort', onAbort)
                         kfV.controller = null
                     }
                     kfV.controller?.signal.addEventListener('abort', onAbort)
 
-                    toInputValidator(config.validator).validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.componentProps)
+                    config.validator?.validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.componentProps)
                 })
                 kfV.success = true
             } catch (e) {
-                kfV.success = false
-                kfV.message = e as string
+                if (e !== 'ABORT PROMISE') {
+                    kfV.success = false
+                    kfV.message = e as string
+                }
             }
             if (kfV.success) {
                 kfV.message = ''
@@ -95,7 +97,7 @@ export default function useComponentValidator({context}: InternalContext) {
     // 执行change校验
     async function processValidate(configList: MetaKeyConfigWithField[], changeKeys: {
         [key: string]: boolean
-    } = null): Promise<boolean> {
+    } | null = null): Promise<boolean> {
         let list: MetaKeyConfigWithField[] = configList
         if (changeKeys) {
             list = configList.filter(item => changeKeys[item.field])
@@ -110,14 +112,14 @@ export default function useComponentValidator({context}: InternalContext) {
                     if (keyForTimer[field]) {
                         clearTimeout(keyForTimer[field])
                     }
-                    if ((toInputValidator(validator)?.triggerDelay || 0) <= 0) {
+                    if (((validator as InputValidator)?.triggerDelay || 0) <= 0) {
                         const success = await validateItem(config)
                         resolve(success)
                     } else {
                         keyForTimer[field] = setTimeout(async () => {
                             const success = await validateItem(config)
                             resolve(success)
-                        }, toInputValidator(validator)?.triggerDelay)
+                        }, (validator as InputValidator)?.triggerDelay)
                     }
                 })
             })
@@ -125,11 +127,6 @@ export default function useComponentValidator({context}: InternalContext) {
 
         return !result.includes(false)
     }
-
-    function toInputValidator(validator: ValidateFunction | InputValidator): validator is InputValidator {
-        return validator
-    }
-
 
     return {
         keyForValidate,

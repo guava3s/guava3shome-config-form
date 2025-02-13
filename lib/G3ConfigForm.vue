@@ -3,21 +3,27 @@
     <div class="g3-config-form-items">
       <div v-for="(item,index) in keyConfigList" :key="index" class="g3-config-form-props-wrapper">
 
-        <div v-if="item.display" class="g3-config-form-props" :class="{'g3-config-form-required': item.required.value}">
-          <span>{{ item.title }}</span>
-        </div>
-
         <template v-if="item.display">
+          <slot v-if="$slots.TITLE" name="TITLE" :scope="deepClone(item)"></slot>
+          <div v-else class="g3-config-form-props"
+               :class="{'g3-config-form-required': item.required.value}">
+            <span>{{ item.title }}</span>
+          </div>
+        </template>
+
+        <div v-if="item.display">
           <component :is="renderComponentMap[item.field]"
                      :tabindex="index"
                      v-model="keyForValues[item.field]"
                      v-bind="item.componentProps">
             <slot :name="item.field" :scope="deepClone(item)"></slot>
           </component>
-          <div class="g3-config-form-error" :style="{maxHeight: `${keyForValidate[item.field].success?0:38}px`}">
-            {{ keyForValidate[item.field].message }}
+          <div class="g3-config-form-error" :class="{'is-expand': !keyForValidate[item.field].success}">
+            <div class="error-content">
+              {{ keyForValidate[item.field].message }}
+            </div>
           </div>
-        </template>
+        </div>
 
       </div>
     </div>
@@ -50,7 +56,6 @@ import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
 import {G3Context} from "guava3shome-h5-utils"
 import {deepClone} from "guava3shome-h5-utils/dist/object-util"
-import {TriggerScope} from "./typings/runtime-validate.ts"
 
 export default defineComponent({
   props: {
@@ -322,12 +327,21 @@ export default defineComponent({
 }
 
 .g3-config-form-error {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 100ms ease-in;
   color: red;
   font-size: 12px;
   margin: 5px 0;
   overflow: hidden;
-  transition: all 100ms ease-in;
 }
 
+.g3-config-form-error.is-expand {
+  grid-template-rows: 1fr;
+}
+
+.error-content {
+  min-height: 0;
+}
 
 </style>
