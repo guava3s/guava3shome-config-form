@@ -3,7 +3,6 @@ import G3ConfigForm from "../lib/G3ConfigForm.vue";
 import {
   type FailCallback,
   type SuccessCallback,
-  TriggerType,
 } from "../lib/typings/runtime-validate.ts";
 
 
@@ -127,7 +126,7 @@ const scopeConfig = {
 <template>
   <div style="max-width: 600px">
     <G3ConfigForm :key-config="scopeConfig.scope1">
-      <template #footer>
+      <template #TITLE-name>
         hello
       </template>
     </G3ConfigForm>

@@ -4,7 +4,7 @@
       <div v-for="(item,index) in keyConfigList" :key="index" class="g3-config-form-props-wrapper">
 
         <template v-if="item.display">
-          <slot v-if="$slots.TITLE" name="TITLE" :scope="deepClone(item)"></slot>
+          <slot v-if="$slots['TITLE-'+item.field]" :name="'TITLE-'+item.field" :scope="deepClone(item)"></slot>
           <div v-else class="g3-config-form-props"
                :class="{'g3-config-form-required': item.required.value}">
             <span>{{ item.title }}</span>

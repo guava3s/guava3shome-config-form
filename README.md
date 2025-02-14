@@ -186,10 +186,11 @@ app.mount('#app')
 
 ### Slot
 
-| 插槽名称           | 说明                                              |
-|----------------|-------------------------------------------------|
-| `FOOTER` | 如果 `useFooterSlot` 为 `true`，则使用此插槽替代默认的提交和取消按钮。 |
-| `item.field`   | 动态生成的插槽，依据每个字段的 `field` 属性名来绑定。                 |
+| 插槽名称            | 说明                              |
+|-----------------|---------------------------------|
+| `TITLE-[field]` | 标题插槽。                           |
+| `FOOTER`        | 替代默认的提交按钮。                      |
+| `item.field`    | 动态生成的插槽，依据每个字段的 `field` 属性名来绑定。 |
 
 ### Data Effect
 
@@ -209,161 +210,244 @@ app.mount('#app')
 };
 ```
 
-
 ## 表单配置字段解析
-### Validate
 
-表单校验从可以从两个属性(required/validator)进行配置
-
-#### required
-
-配置该表单项是否为必填项，为空时会显示错误提示，无法进行提交
 
 ```ts
-interface RequiredDescValidator {
+interface MetaKeyConfig {
     /**
-     * required值
+     * 标题
      */
-    value: boolean
-    /**
-     * 提示消息
-     */
-    message: string
-    /**
-     * 是否在表单渲染完成后立即进行一次校验；默认值 true
-     */
-    immediate?: boolean
-}
-```
-
-#### validator
-
-可选字段，对required进行增强
-
-```ts
-interface InputValidator {
-    /**
-     * 校验函数
-     * @param value 表单项值
-     * @param success 成功信号函数，在校验成功时执行 success()
-     * @param fail 失败信号函数，在校验失败时执行 fail(message: string)
-     * @param props 该表单项所引用组件的props，提供校验时动态更改功能
-     */
-    validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+    title: string
 
     /**
-     * 触发类型，因change/blur动作而触发；默认值 change
-     * change：该表单项值发生变化时触发
-     * blur：该表单项失焦后触发
+     * 是否显示
      */
-    triggerType?: TriggerType
+    display: boolean
 
     /**
-     * 触发延时，用于防抖功能的时间范围；默认值 200
+     * 配置该表单项是否为必填项，为空时会显示错误提示，无法进行提交
      */
-    triggerDelay?: number
-
-    /**
-     * 是否在表单渲染完成后立即进行一次校验；默认值 true
-     */
-    immediate?: boolean
-
-    /**
-     * 触发作用域，校验仅作用于item/submit时有效，默认值 [item, submit]
-     * single： 表单项，若无配置item，则该表单项值变化时不会触发校验
-     * propagation： 提交表单时
-     */
-    scope?: TriggerScope
-}
-```
-
-当同时存在required与validator字段时，会依次对required、validator字段信息进行校验
-
-### Dependency
-
-使用 dependencies[] 字段配置表单项之间的依赖关系，例如A、B字段，对B字段配置依赖字段，表明B字段的所有行为、显示方式等都受到该依赖字段值变化的影响
-
-```ts
-import {MetaConfig} from "./meta-config";
-
-interface MetaConfigDependency {
-    /**
-     * 该表单项所依赖的字段名
-     */
-    depField: keyof MetaConfig
-
-    /**
-     * 依赖字段能够产生影响的值
-     */
-    depValues: string[]
-
-    /**
-     * 判断条件，根据该条件对依赖字段的值进行判断，若是满足则将 reset 对象作为新配置赋予给此表单项
-     * some: 依赖字段值在 depValues 中出现即满足条件
-     * not_in: 依赖字段值不在 depValues 中出现即满足条件
-     * all: 依赖字段值（数组值）全部出现 depValues 中出现即满足条件
-     */
-    depCondition: 'some' | 'not_in' | 'all'
-
-    /**
-     * 该依赖在集合中的优先级
-     */
-    priority: number
-
-    /**
-     * 重置配置项
-     */
-    reset: {
+    required: {
         /**
-         * 表单项标题
+         * required值
          */
-        title: string
-
+        value: boolean
         /**
-         * 表单项是否显示
+         * 提示消息
          */
-        display: boolean
-
+        message: string
         /**
-         * 是否为必填项
+         * 是否在表单渲染完成后立即进行一次校验；默认值 true
          */
-        required: RequiredDescValidator
-
-        /**
-         * 表单项实例组件
-         */
-        component: () => Promise<Component>
-
-        /**
-         * 表单项实例组件props对象
-         */
-        componentProps: MetaKeyComponentProps
-
-        /**
-         * 表单项顺序
-         */
-        order: number
-
-        /**
-         * 默认值
-         */
-        defaultValue?: string | number | boolean | string[] | number[] | boolean[]
-
-        /**
-         * 值类型，用于增强数据类型准确性
-         */
-        valueType?: 'string' | 'number' | 'boolean' | 'base_array'
-
-        /**
-         * 校验器
-         * ValidateFunction最终会转换为主要类型InputValidator
-         */
-        validator?: InputValidator | ValidateFunction
-
-        /**
-         * 用于动态获取字典值
-         */
-        options?: MetaOptionConfig[] | ((field: keyof MetaConfig) => Promise<MetaOptionConfig[]>)
+        immediate?: boolean
     }
+
+    /**
+     * 表单项组件
+     */
+    component: () => Promise<Component>
+
+    /**
+     * 自定义表单项组件props属性
+     */
+    componentProps: MetaKeyComponentProps
+
+    /**
+     * 配置顺序
+     */
+    order: number
+
+    /**
+     * 默认值，若是在props的keyData存在字段初始值，则不使用该字段值
+     */
+    defaultValue?: string | number | boolean | string[] | number[] | boolean[]
+
+    /**
+     * 默认值类型
+     */
+    valueType?: 'string' | 'number' | 'boolean' | 'base_array'
+
+    /**
+     * 校验器，对required配置进行增强，支持函数与对象配置
+     * 当同时存在required与validator字段时，会依次对required、validator字段信息进行校验
+     */
+    validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void> | {
+        /**
+         * 校验函数
+         * @param value 表单项值
+         * @param success 成功信号函数，在校验成功时执行 success()
+         * @param fail 失败信号函数，在校验失败时执行 fail(message: string)
+         * @param props 该表单项所引用组件的props，提供校验时动态更改功能
+         */
+        validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+
+        /**
+         * 触发类型，因change/blur动作而触发；默认值 change
+         * change：该表单项值发生变化时触发
+         * blur：该表单项失焦后触发
+         */
+        triggerType?: 'change' | 'blur'
+
+        /**
+         * 触发延时，用于防抖功能的时间范围；默认值 100
+         */
+        triggerDelay?: number
+
+        /**
+         * 是否在表单渲染完成后立即进行一次校验；默认值 true
+         */
+        immediate?: boolean
+
+        /**
+         * 触发作用域，校验仅作用于item/submit时有效，默认值 single
+         * single： 仅校验当前字段
+         * propagation： 对所有字段进行校验
+         */
+        scope?: 'single' | 'propagation'
+    }
+
+    /**
+     * 备用选项，适用于选择器、单选、多选、级联等组件
+     */
+    options?: {
+        [key: string]: string | number
+    }[] | ((field: keyForString<MetaConfig>) => Promise<{
+        [key: string]: string | number
+    }[]>)
+
+    /**
+     * 配置表单项之间的依赖关系，例如A、B字段，对B字段配置依赖字段，表明B字段的所有行为、显示方式等都受到该依赖字段值变化的影响
+     */
+    readonly dependencies?: {
+        /**
+         * 该表单项所依赖的字段名
+         */
+        depField: keyof MetaConfig
+
+        /**
+         * 依赖字段能够产生影响的值
+         */
+        depValues: string[]
+
+        /**
+         * 判断条件，根据该条件对依赖字段的值进行判断，若是满足则将 reset 对象作为新配置赋予给此表单项
+         * some: 依赖字段值在 depValues 中出现即满足条件
+         * not_in: 依赖字段值不在 depValues 中出现即满足条件
+         * all: 依赖字段值（数组值）全部出现 depValues 中出现即满足条件
+         */
+        depCondition: 'some' | 'not_in' | 'all'
+
+        /**
+         * 该依赖在集合中的优先级
+         */
+        priority: number
+
+        /**
+         * 重置配置项
+         */
+        reset: {
+            /**
+             * 标题
+             */
+            title: string
+
+            /**
+             * 是否显示
+             */
+            display: boolean
+
+            /**
+             * 配置该表单项是否为必填项，为空时会显示错误提示，无法进行提交
+             */
+            required: {
+                /**
+                 * required值
+                 */
+                value: boolean
+                /**
+                 * 提示消息
+                 */
+                message: string
+                /**
+                 * 是否在表单渲染完成后立即进行一次校验；默认值 true
+                 */
+                immediate?: boolean
+            }
+
+            /**
+             * 表单项组件
+             */
+            component: () => Promise<Component>
+
+            /**
+             * 自定义表单项组件props属性
+             */
+            componentProps: MetaKeyComponentProps
+
+            /**
+             * 配置顺序
+             */
+            order: number
+
+            /**
+             * 默认值，若是在props的keyData存在字段初始值，则不使用该字段值
+             */
+            defaultValue?: string | number | boolean | string[] | number[] | boolean[]
+
+            /**
+             * 默认值类型
+             */
+            valueType?: 'string' | 'number' | 'boolean' | 'base_array'
+
+            /**
+             * 校验器，对required配置进行增强，支持函数与对象配置
+             * 当同时存在required与validator字段时，会依次对required、validator字段信息进行校验
+             */
+            validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void> | {
+                /**
+                 * 校验函数
+                 * @param value 表单项值
+                 * @param success 成功信号函数，在校验成功时执行 success()
+                 * @param fail 失败信号函数，在校验失败时执行 fail(message: string)
+                 * @param props 该表单项所引用组件的props，提供校验时动态更改功能
+                 */
+                validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+
+                /**
+                 * 触发类型，因change/blur动作而触发；默认值 change
+                 * change：该表单项值发生变化时触发
+                 * blur：该表单项失焦后触发
+                 */
+                triggerType?: 'change' | 'blur'
+
+                /**
+                 * 触发延时，用于防抖功能的时间范围；默认值 100
+                 */
+                triggerDelay?: number
+
+                /**
+                 * 是否在表单渲染完成后立即进行一次校验；默认值 true
+                 */
+                immediate?: boolean
+
+                /**
+                 * 触发作用域，校验仅作用于item/submit时有效，默认值 single
+                 * single： 仅校验当前字段
+                 * propagation： 对所有字段进行校验
+                 */
+                scope?: 'single' | 'propagation'
+            }
+
+            /**
+             * 备用选项，适用于选择器、单选、多选、级联等组件
+             */
+            options?: {
+                [key: string]: string | number
+            }[] | ((field: keyForString<MetaConfig>) => Promise<{
+                [key: string]: string | number
+            }[]>)
+        }
+    }[]
 }
 ```

@@ -3,7 +3,6 @@ import type {keyForString, MetaConfig, MetaKeyConfig, MetaKeyConfigWithField} fr
 import type {
     InputValidator,
     RequiredDescValidator,
-    ValidateFunction,
     ValidateResultParams
 } from "../typings/runtime-validate.ts";
 import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";

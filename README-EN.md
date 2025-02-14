@@ -186,10 +186,11 @@ app.mount('#app')
 
 #### Slots
 
-| Slot Name      | Description                                                       |
-|----------------|-------------------------------------------------------------------|
-| `FOOTER`       | Replaces default action buttons when useFooterSlot=true           |
-| `item.[field]` | Dynamic slots bound to specific fields using their field property |
+| Slot Name       | Description                                                       |
+|-----------------|-------------------------------------------------------------------|
+| `TITLE-[field]` | Replaces title                                                    |
+| `FOOTER`        | Replaces default action buttons                                   |
+| `item.[field]`  | Dynamic slots bound to specific fields using their field property |
 
 ### Data Relationships
 
@@ -207,65 +208,209 @@ keyDataEffect = {
 };
 ```
 
-
 ## Form configuration field parsing
 
-### Validation System
-
-Configure validation through required and validator properties:
-
-#### Required Field
-
 ```ts
-interface RequiredDescValidator {
-    value: boolean
-    message: string
-    immediate?: boolean  // Default: true
-}
-```
-
-#### Enhanced Validation
-
-```ts
-interface InputValidator {
-    validate: (
-        value: any,
-        success: () => void,
-        fail: (msg: string) => void,
-        props: MetaKeyComponentProps
-    ) => Promise<void>
-
-    triggerType?: 'change' | 'blur'             // Default: 'change'
-    triggerDelay?: number                       // Debounce time (ms), default: 200
-    immediate?: boolean                         // Default: true
-    scope?: 'single' | 'propagation'            // Default: single
-}
-```
-
-Validation sequence: required checks execute before validator when both exist.
-
-### Dependency Management
-
-Configure field dependencies using dependencies[]:
-
-```ts
-interface MetaConfigDependency {
-    depField: keyof MetaConfig
-    depValues: string[]
-    depCondition: 'some' | 'not_in' | 'all'
-    priority: number
-    reset: {
-        title: string
-        display: boolean
-        required: RequiredDescValidator
-        component: () => Promise<Component>
-        componentProps: MetaKeyComponentProps
-        order: number
-        defaultValue?: Primitive | Array<Primitive>
-        valueType?: DataType
-        // ValidFunction will eventually be converted to the main type InputValidator
-        validator?: InputValidator
-        options?: MetaOptionConfig[] | ((field: string) => Promise<MetaOptionConfig[]>)
+interface MetaKeyConfig {
+    title: string
+    display: boolean
+    /**
+     * Configure whether the form item is mandatory. If it is empty, an error message will be displayed and submission cannot be made
+     */
+    required: {
+        value: boolean
+        message: string
+        /**
+         * Should a verification be performed immediately after the form rendering is completed; Default value true
+         */
+        immediate?: boolean
     }
+
+    /**
+     * Form Item Component
+     */
+    component: () => Promise<Component>
+
+    /**
+     * Custom form item component props properties
+     */
+    componentProps: MetaKeyComponentProps
+
+    order: number
+
+    /**
+     * If there is an initial value in the keyData field of props, do not use that field value
+     */
+    defaultValue?: string | number | boolean | string[] | number[] | boolean[]
+
+    /**
+     * Default value type
+     */
+    valueType?: 'string' | 'number' | 'boolean' | 'base_array'
+
+    /**
+     * Validator, enhances required configuration, supports function and object configuration
+     * When there are both required and validator fields present, the required and validator field information will be validated sequentially
+     */
+    validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void> | {
+        /**
+         * Verification function
+         * @param value Form item value
+         * @param success The success signal function executes success() when the verification is successful
+         * @param fail Failure signal function, execute fail (message: string) when verification fails
+         * @param props The props of the component referenced by this form item provide dynamic change functionality during verification
+         */
+        validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+
+        /**
+         * Trigger type, triggered by the change/blur action; Default value change
+         * change: Triggered when the value of the form item changes
+         * blur： Triggered when the form item loses focus
+         */
+        triggerType?: TriggerType
+
+        /**
+         * Trigger delay, the time range used for anti shake function; Default value 100
+         */
+        triggerDelay?: number
+
+        /**
+         * Should a verification be performed immediately after the form rendering is completed; Default value true
+         */
+        immediate?: boolean
+
+        /**
+         * Trigger scope, validation is only valid when applied to item/submit, default value 'single'
+         * single： Only verify the current field
+         * propagation： Validate all fields
+         */
+        scope?: 'single' | 'propagation'
+    }
+
+    /**
+     * Backup options, suitable for components such as selectors, single selection, multiple selection, cascading, etc
+     */
+    options?: {
+        [key: string]: string | number
+    }[] | ((field: keyForString<MetaConfig>) => Promise<{
+        [key: string]: string | number
+    }[]>)
+
+    /**
+     * Configure the dependency relationship between form items, such as fields A and B. Configure a dependency field for field B to indicate that all behaviors, display modes, etc. of field B are affected by changes in the value of the dependency field
+     */
+    readonly dependencies?: {
+        /**
+         * The field name that this form item depends on
+         */
+        depField: keyof MetaConfig
+
+        /**
+         * The values that can be influenced by dependent fields
+         */
+        depValues: string[]
+
+        /**
+         * Determine the condition by judging the value of the dependent field based on this condition. If it is met, assign the reset object as a new configuration to this table item
+         * some:  The appearance of dependent field values in depValues satisfies the condition
+         * not_in: If the dependent field value does not appear in depValues, the condition is met
+         * all:  If all dependent field values (array values) appear in depValues, the condition is met
+         */
+        depCondition: 'some' | 'not_in' | 'all'
+
+        /**
+         * The priority of the dependency in the set
+         */
+        priority: number
+
+        /**
+         * Reset configuration items
+         */
+        reset: {
+            title: string
+            display: boolean
+            /**
+             * Configure whether the form item is mandatory. If it is empty, an error message will be displayed and submission cannot be made
+             */
+            required: {
+                value: boolean
+                message: string
+                /**
+                 * Should a verification be performed immediately after the form rendering is completed; Default value true
+                 */
+                immediate?: boolean
+            }
+
+            /**
+             * Form Item Component
+             */
+            component: () => Promise<Component>
+
+            /**
+             * Custom form item component props properties
+             */
+            componentProps: MetaKeyComponentProps
+
+            order: number
+
+            /**
+             * If there is an initial value in the keyData field of props, do not use that field value
+             */
+            defaultValue?: string | number | boolean | string[] | number[] | boolean[]
+
+            /**
+             * Default value type
+             */
+            valueType?: 'string' | 'number' | 'boolean' | 'base_array'
+
+            /**
+             * Validator, enhances required configuration, supports function and object configuration
+             * When there are both required and validator fields present, the required and validator field information will be validated sequentially
+             */
+            validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void> | {
+                /**
+                 * Verification function
+                 * @param value Form item value
+                 * @param success The success signal function executes success() when the verification is successful
+                 * @param fail Failure signal function, execute fail (message: string) when verification fails
+                 * @param props The props of the component referenced by this form item provide dynamic change functionality during verification
+                 */
+                validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+
+                /**
+                 * Trigger type, triggered by the change/blur action; Default value change
+                 * change: Triggered when the value of the form item changes
+                 * blur： Triggered when the form item loses focus
+                 */
+                triggerType?: TriggerType
+
+                /**
+                 * Trigger delay, the time range used for anti shake function; Default value 100
+                 */
+                triggerDelay?: number
+
+                /**
+                 * Should a verification be performed immediately after the form rendering is completed; Default value true
+                 */
+                immediate?: boolean
+
+                /**
+                 * Trigger scope, validation is only valid when applied to item/submit, default value 'single'
+                 * single： Only verify the current field
+                 * propagation： Validate all fields
+                 */
+                scope?: 'single' | 'propagation'
+            }
+
+            /**
+             * Backup options, suitable for components such as selectors, single selection, multiple selection, cascading, etc
+             */
+            options?: {
+                [key: string]: string | number
+            }[] | ((field: keyForString<MetaConfig>) => Promise<{
+                [key: string]: string | number
+            }[]>)
+        }
+    }[]
 }
 ```
