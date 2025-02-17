@@ -4,6 +4,7 @@ import {
   type FailCallback,
   type SuccessCallback,
 } from "../lib/typings/runtime-validate.ts";
+import {getCurrentInstance} from "vue";
 
 
 const scopeConfig = {
@@ -34,7 +35,7 @@ const scopeConfig = {
           console.log('发起请求')
           setTimeout(() => {
             resolve(1)
-          }, 3000)
+          }, 1000)
         })
         if (value.includes('fu')) {
           fail('don\'t fu')
@@ -121,13 +122,19 @@ const scopeConfig = {
     // }
   }
 }
+
+const {proxy} = getCurrentInstance()
+async function submit(){
+  const data = await proxy.$refs.configForm.submit()
+  console.log('data=', data)
+}
 </script>
 
 <template>
   <div style="max-width: 600px">
-    <G3ConfigForm :key-config="scopeConfig.scope1">
-      <template #TITLE-name>
-        hello
+    <G3ConfigForm :key-config="scopeConfig.scope1" ref="configForm">
+      <template #FOOTER>
+        <button @click="submit">submit</button>
       </template>
     </G3ConfigForm>
   </div>

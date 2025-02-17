@@ -27,10 +27,10 @@
 
       </div>
     </div>
-    <div v-if="!readonly" class="g3-config-form-footer">
+    <slot v-if="!readonly && $slots.FOOTER" name="FOOTER"></slot>
+    <div v-else-if="!readonly && !$slots.FOOTER" class="g3-config-form-footer">
       <button @click="submit">submit</button>
     </div>
-    <slot v-else-if="!readonly && $slots.FOOTER" name="FOOTER"></slot>
   </div>
 </template>
 
@@ -110,13 +110,13 @@ export default defineComponent({
 
     // 配置显示信息集合
     const keyConfigList = ref<MetaKeyConfigWithField[]>([])
-    const renderComponentMap = ref<Record<keyof MetaConfig, ShallowRef>>({})
+    const renderComponentMap = ref<Record<keyForString<MetaConfig>, ShallowRef>>({})
     // 表单问题答案对象
-    const keyForValues = ref<Record<keyof MetaConfig, any>>({})
+    const keyForValues = ref<Record<keyForString<MetaConfig>, any>>({})
     // 配置字段依赖对象
-    const backupKeyDependencies = ref<Record<keyof MetaConfig, MetaConfigDependency[]>>({})
+    const backupKeyDependencies = ref<Record<keyForString<MetaConfig>, MetaConfigDependency[]>>({})
     // 原始配置字段依赖对象
-    const backupKeyConfig = ref<Record<keyof MetaConfig, MetaKeyConfigWithField>>({})
+    const backupKeyConfig = ref<Record<keyForString<MetaConfig>, MetaKeyConfigWithField>>({})
 
     ctx.addContextProps({
       keyConfigList,
@@ -260,7 +260,7 @@ export default defineComponent({
 
     }
 
-    async function submit(): Promise<void> {
+    async function submit(): Promise<Record<keyForString<MetaConfig>, any> | undefined> {
       try {
         await new Promise<void>((resolve, reject) => {
           if (hasFunction(props.beforeSubmit)) {
@@ -270,8 +270,16 @@ export default defineComponent({
           }
         })
         const success = await processValidate(keyConfigList.value)
+        if (!success) {
+          return
+        }
         // 提交数据
-        success && !slots.FOOTER && emit('submit', deepClone(keyForValues.value))
+        const cloneData = deepClone(keyForValues.value);
+        if (slots.FOOTER) {
+          return cloneData
+        } else {
+          emit('submit', cloneData)
+        }
       } catch (e) {
         console.log('>> G3ConfigForm Error: ', e)
       }
