@@ -309,7 +309,6 @@ export default defineComponent({
 }
 
 .g3-config-form-footer > button {
-  margin: 10px;
   border-radius: 15px;
   height: 50px;
   width: 100%;
