@@ -148,6 +148,10 @@ app.mount('#app')
               {label: 'Male', value: 1},
               {label: 'Female', value: 0}
             ]
+          },
+          system: {
+              fixed: true,
+              defaultValue: true
           }
         }
       }
@@ -212,6 +216,10 @@ keyDataEffect = {
 
 ```ts
 interface MetaKeyConfig {
+    /**
+     * Is it a fixed field (does not require display/dependency/validation)
+     */
+    fixed?: boolean
     title: string
     display: boolean
     /**

@@ -50,7 +50,7 @@ import type {
   MetaKeyConfig,
   MetaKeyConfigWithField,
 } from "./typings/meta-config.ts"
-import {containKey, hasFunction, VALUE_TYPE_MAP} from "./util/type-check.ts"
+import {containKey, hasFunction} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
 import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
@@ -132,9 +132,21 @@ export default defineComponent({
     function fillValue(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
       // use sort：keyData > defaultValue
       let renderValue = props.keyData[field]
-      if (!renderValue && config.valueType && config.defaultValue) {
-        renderValue = VALUE_TYPE_MAP[config.valueType](config.defaultValue)
+
+      if (!renderValue && config.defaultValue) {
+        if (config.valueType) {
+          const isArrayType = config.valueType === Array
+          const isObjectType = config.valueType === Object
+
+          renderValue = (isArrayType && Array.isArray(config.defaultValue)) || (isObjectType) ?
+              config.defaultValue :
+              config.valueType(config.defaultValue)
+        } else {
+          // 无 valueType 时直接使用默认值
+          renderValue = config.defaultValue;
+        }
       }
+
       keyForValues.value[field] = renderValue ?? null
     }
 
@@ -156,12 +168,16 @@ export default defineComponent({
                 ...deepClone(config)
               }
               fillValue(field, element)
+              element.fixed ??= false
+              if (element.fixed) {
+                return element
+              }
               fillValidate(field, element)
               fillOptions(field, element)
 
               const {dependencies, ...otherField} = element
               renderComponentMap.value[field] = shallowRef(defineAsyncComponent(element.component))
-              element.componentProps.disable ||= props.readonly
+              element.componentProps ??= {}
 
               // dependency init
               if (dependencies?.length) {
@@ -172,6 +188,7 @@ export default defineComponent({
 
               return element
             })
+            .filter(item => !item.fixed)
             .sort((v1, v2) => v1.order - v2.order)
             // dependency search, 替换对应元数据
             .map(item => triggerReset(item).data)
@@ -286,7 +303,7 @@ export default defineComponent({
     }
 
     function reset(): void {
-      Object.keys(keyForValues.value).forEach(key => keyForValues.value[key] = '')
+      keyConfigList.value.forEach(config => keyForValues.value[config.field] = '')
     }
 
     expose({reset, submit})

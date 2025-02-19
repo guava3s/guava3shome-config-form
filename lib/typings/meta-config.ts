@@ -1,4 +1,4 @@
-import type {ComponentValue, ComponentValueType} from "./exhibit-component.ts";
+import type {ComponentValueType} from "./exhibit-component.ts";
 import type {Component} from "@vue/runtime-core";
 import type {InputValidator, RequiredDescValidator, ValidateFunction} from "./runtime-validate.ts";
 
@@ -10,13 +10,15 @@ export interface MetaConfig {
 }
 
 export interface MetaKeyConfig {
+    // 当fixed为true时，除defaultValue/valueType外的字段全部无效，默认为false
+    fixed?: boolean
     title: string
     display: boolean
     required: RequiredDescValidator
     component: () => Promise<Component>
-    componentProps: MetaKeyComponentProps
+    componentProps?: MetaKeyComponentProps
     order: number
-    defaultValue?: ComponentValue
+    defaultValue?: any
     valueType?: ComponentValueType
     // 根据组件自定义 final: InputValidator
     validator?: ValidateFunction | InputValidator
@@ -26,16 +28,11 @@ export interface MetaKeyConfig {
 }
 
 export interface MetaKeyComponentProps {
-    disable: {
-        alias: string
-        value: boolean
-    } | boolean
-
     [key: string]: any
 }
 
 export type MetaDependencyCondition = 'some' | 'not_in' | 'all'
-export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies'>
+export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies' | 'fixed'>
 export type MetaKeyConfigWithField = OmitDepMetaKeyConfig & { readonly field: keyForString<MetaConfig> }
 
 

@@ -139,6 +139,11 @@ app.mount('#app')
               {label: 'Male', value: 1},
               {label: 'Female', value: 0}
             ]
+          },
+          system: {
+              fixed: true,
+              defaultValue: true,
+              valueType: Boolean
           }
         }
       }
@@ -215,6 +220,11 @@ app.mount('#app')
 
 ```ts
 interface MetaKeyConfig {
+    /**
+     * 是否为固定字段（不需要显示/依赖/校验）
+     */
+    fixed?: boolean
+    
     /**
      * 标题
      */

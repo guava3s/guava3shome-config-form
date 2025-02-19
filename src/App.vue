@@ -9,6 +9,11 @@ import {getCurrentInstance} from "vue";
 
 const scopeConfig = {
   'scope1': {
+    hello: {
+      fixed: true,
+      valueType: Boolean,
+      defaultValue: 1434
+    },
     name: {
       title: 'Test1',
       display: true,
@@ -124,7 +129,8 @@ const scopeConfig = {
 }
 
 const {proxy} = getCurrentInstance()
-async function submit(){
+
+async function submit() {
   const data = await proxy.$refs.configForm.submit()
   console.log('data=', data)
 }
