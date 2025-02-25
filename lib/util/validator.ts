@@ -76,7 +76,7 @@ export default function useComponentValidator({context}: InternalContext) {
                     }
                     kfV.controller?.signal.addEventListener('abort', onAbort)
 
-                    config.validator?.validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.componentProps)
+                    config.validator?.validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.component.bind)
                 })
                 kfV.success = true
             } catch (e) {

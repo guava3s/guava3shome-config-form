@@ -79,14 +79,18 @@ app.mount('#app')
               value: true,
               message: 'Please input name'
             },
-            component: () => import('../lib/component/G3Input.vue'),
-            order: 1,
-            valueType: 'STRING',
-            componentProps: {
-              placeholder: 'Please input name',
-              type: 'text',
-              disable: false
+            // Referencing third-party components can also be manually encapsulated
+            component: {
+                body: () => import('../lib/component/G3Input.vue'),
+                // Props of third-party components
+                bind: {
+                  placeholder: 'Please input name',
+                  type: 'text',
+                  disable: false
+                }
             },
+            order: 1,
+            valueType: String,
             validator: {
               triggerType: 'change',
               triggerDelay: 0,
@@ -105,14 +109,16 @@ app.mount('#app')
               value: true,
               message: 'Please input password'
             },
-            component: () => import('../lib/component/G3Input.vue'),
-            order: 2,
-            valueType: 'STRING',
-            componentProps: {
-              placeholder: 'Enter password',
-              type: 'password',
-              disable: false
+            component: {
+                body: () => import('../lib/component/G3Input.vue'),
+                bind: {
+                  placeholder: 'Enter password',
+                  type: 'password',
+                  disable: false
+                }
             },
+            order: 2,
+            valueType: String,
             dependencies: [
               {
                 depField: 'name',
@@ -136,14 +142,14 @@ app.mount('#app')
               value: true,
               message: 'Gender cannot be empty.'
             },
-            // Referencing third-party components can also be manually encapsulated
-            component: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
-            order: 3,
-            valueType: 'number',
-            // Props of third-party components
-            componentProps: {
-              placeholder: 'Please select your gender',
+            component: {
+                body: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
+                bind: {
+                  placeholder: 'Please select your gender',
+                }
             },
+            order: 3,
+            valueType: Number,
             options: [
               {label: 'Male', value: 1},
               {label: 'Female', value: 0}
@@ -193,7 +199,7 @@ app.mount('#app')
 | Slot Name       | Description                                                       |
 |-----------------|-------------------------------------------------------------------|
 | `TITLE-[field]` | Replaces title                                                    |
-| `FOOTER`        | Replaces default action buttons                                   |
+| `_FOOTER`       | Replaces default action buttons                                   |
 | `item.[field]`  | Dynamic slots bound to specific fields using their field property |
 
 ### Data Relationships
@@ -213,6 +219,12 @@ keyDataEffect = {
 ```
 
 ## Form configuration field parsing
+
+```ts
+interface MetaConfig {
+    [field: string]: MetaKeyConfig
+}
+```
 
 ```ts
 interface MetaKeyConfig {
@@ -237,30 +249,39 @@ interface MetaKeyConfig {
     /**
      * Form Item Component
      */
-    component: () => Promise<Component>
-
-    /**
-     * Custom form item component props properties
-     */
-    componentProps: MetaKeyComponentProps
+    component: {
+        body: () => Promise<Component> | Component
+        /**
+         *  Custom form item component props properties
+         */
+        bind?: {
+            [key: string]: any
+        }
+    }
 
     order: number
 
     /**
      * If there is an initial value in the keyData field of props, do not use that field value
      */
-    defaultValue?: string | number | boolean | string[] | number[] | boolean[]
+    defaultValue?: any
 
     /**
      * Default value type
      */
-    valueType?: 'string' | 'number' | 'boolean' | 'base_array'
+    valueType?: ((value?: any) => string)   // => String
+              | ((value?: any) => number)   // => Number
+              | ((value?: any) => boolean)  // => Boolean
+              | ((value?: any) => any[])    // => Array
+              | ((value?: any) => object);  // => Object
 
     /**
      * Validator, enhances required configuration, supports function and object configuration
      * When there are both required and validator fields present, the required and validator field information will be validated sequentially
      */
-    validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void> | {
+    validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: {
+        [key: string]: any
+    }) => Promise<void> | {
         /**
          * Verification function
          * @param value Form item value
@@ -268,7 +289,9 @@ interface MetaKeyConfig {
          * @param fail Failure signal function, execute fail (message: string) when verification fails
          * @param props The props of the component referenced by this form item provide dynamic change functionality during verification
          */
-        validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+        validate: (value: any, success: SuccessCallback, fail: FailCallback, props: {
+            [key: string]: any
+        }) => Promise<void>
 
         /**
          * Trigger type, triggered by the change/blur action; Default value change
@@ -352,30 +375,39 @@ interface MetaKeyConfig {
             /**
              * Form Item Component
              */
-            component: () => Promise<Component>
-
-            /**
-             * Custom form item component props properties
-             */
-            componentProps: MetaKeyComponentProps
+            component: {
+                body: () => Promise<Component> | Component
+                /**
+                 *  Custom form item component props properties
+                 */
+                bind?: {
+                    [key: string]: any
+                }
+            }
 
             order: number
 
             /**
              * If there is an initial value in the keyData field of props, do not use that field value
              */
-            defaultValue?: string | number | boolean | string[] | number[] | boolean[]
+            defaultValue?: any
 
             /**
              * Default value type
              */
-            valueType?: 'string' | 'number' | 'boolean' | 'base_array'
+            valueType?: ((value?: any) => string)   // => String
+                      | ((value?: any) => number)   // => Number
+                      | ((value?: any) => boolean)  // => Boolean
+                      | ((value?: any) => any[])    // => Array
+                      | ((value?: any) => object);  // => Object
 
             /**
              * Validator, enhances required configuration, supports function and object configuration
              * When there are both required and validator fields present, the required and validator field information will be validated sequentially
              */
-            validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void> | {
+            validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: {
+                [key: string]: any
+            }) => Promise<void> | {
                 /**
                  * Verification function
                  * @param value Form item value
@@ -383,7 +415,9 @@ interface MetaKeyConfig {
                  * @param fail Failure signal function, execute fail (message: string) when verification fails
                  * @param props The props of the component referenced by this form item provide dynamic change functionality during verification
                  */
-                validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+                validate: (value: any, success: SuccessCallback, fail: FailCallback, props: {
+                    [key: string]: any
+                }) => Promise<void>
 
                 /**
                  * Trigger type, triggered by the change/blur action; Default value change

@@ -1,6 +1,7 @@
 import type {ComponentValueType} from "./exhibit-component.ts";
 import type {Component} from "@vue/runtime-core";
 import type {InputValidator, RequiredDescValidator, ValidateFunction} from "./runtime-validate.ts";
+import type {MetaConfigDependency} from "./runtime-dependency.ts";
 
 export type keyForString<T> = Extract<keyof T, string>
 
@@ -15,8 +16,7 @@ export interface MetaKeyConfig {
     title: string
     display: boolean
     required: RequiredDescValidator
-    component: () => Promise<Component>
-    componentProps?: MetaKeyComponentProps
+    component: MetaConfigComponent
     order: number
     defaultValue?: any
     valueType?: ComponentValueType
@@ -26,6 +26,13 @@ export interface MetaKeyConfig {
     options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)
     readonly dependencies?: MetaConfigDependency[]
 }
+
+export interface MetaConfigComponent {
+    body: PromiseComponent | Component
+    bind?: MetaKeyComponentProps
+}
+
+export type PromiseComponent = () => Promise<Component>
 
 export interface MetaKeyComponentProps {
     [key: string]: any
@@ -38,14 +45,6 @@ export type MetaKeyConfigWithField = OmitDepMetaKeyConfig & { readonly field: ke
 
 export interface MetaOptionConfig {
     [key: string]: string | number
-}
-
-export interface MetaConfigDependency {
-    depField: keyof MetaConfig
-    depCondition: MetaDependencyCondition
-    depValues: string[]
-    priority: number
-    reset: OmitDepMetaKeyConfig
 }
 
 export interface DataEffect {

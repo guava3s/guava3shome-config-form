@@ -4,7 +4,7 @@ import {
   type FailCallback,
   type SuccessCallback,
 } from "../lib/typings/runtime-validate.ts";
-import {getCurrentInstance} from "vue";
+import {defineComponent, getCurrentInstance, h} from "vue";
 
 
 const scopeConfig = {
@@ -22,14 +22,16 @@ const scopeConfig = {
         message: 'Please input name,Please input namePlease input name,Please input name,Please input name,Please input namePlease input name,Please input name,Please input name,Please input name,Please input name,Please input name',
         immediate: false
       },
-      component: () => import('../lib/component/G3Input.vue'),
-      order: 1,
-      valueType: 'STRING',
-      componentProps: {
-        placeholder: 'Please input name',
-        type: 'text',
-        disable: false
+      component: {
+        body: () => import('../lib/component/G3Input.vue'),
+        bind: {
+          placeholder: 'Please input name',
+          type: 'text',
+          disable: false
+        }
       },
+      order: 1,
+      valueType: String,
       validator: async (value: string, success: SuccessCallback, fail: FailCallback) => {
         if (value.length > 100) {
           fail('The username length should not exceed 10.')
@@ -57,14 +59,60 @@ const scopeConfig = {
         message: 'Please input test2',
         immediate: false
       },
-      component: () => import('../lib/component/G3Input.vue'),
-      order: 2,
-      valueType: 'STRING',
-      componentProps: {
-        placeholder: 'your password',
-        type: 'password',
-        disable: false
+      component: {
+        body: () => import('../lib/component/G3Input.vue'),
+        bind: {
+          placeholder: 'your password',
+          type: 'password',
+          disable: false
+        }
       },
+      order: 2,
+      valueType: String,
+      dependencies: [
+        {
+          depField: 'name',
+          depValues: [
+            'sss',
+          ],
+          depCondition: 'some',
+          priority: 1,
+          reset: {
+            required: {
+              value: false,
+              message: 'Please input test2',
+            },
+            component: {
+              body: defineComponent({
+                render() {
+                  return h('div', 'Sync Component')
+                }
+              })
+            }
+          }
+        },
+        {
+          depField: 'name',
+          depValues: [
+            'ssss',
+          ],
+          depCondition: 'some',
+          priority: 1,
+          reset: {
+            required: {
+              value: false,
+              message: 'Please input test2',
+            },
+            component: {
+              body: defineComponent({
+                render() {
+                  return h('div', 'Sync Component2')
+                }
+              })
+            }
+          }
+        }
+      ]
     },
     // test3: {
     //   title: 'Test3',
@@ -139,7 +187,7 @@ async function submit() {
 <template>
   <div style="max-width: 600px">
     <G3ConfigForm :key-config="scopeConfig.scope1" ref="configForm">
-      <template #FOOTER>
+      <template #_FOOTER>
         <button @click="submit">submit</button>
       </template>
     </G3ConfigForm>

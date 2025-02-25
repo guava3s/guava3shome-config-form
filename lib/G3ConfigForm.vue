@@ -13,9 +13,9 @@
 
         <div v-if="item.display">
           <component :is="renderComponentMap[item.field]"
-                     :tabindex="index"
+                     :tabindex="(index+1)*1000"
                      v-model="keyForValues[item.field]"
-                     v-bind="item.componentProps">
+                     v-bind="item.component.bind">
             <slot :name="item.field" :scope="deepClone(item)"></slot>
           </component>
           <div class="g3-config-form-error" :class="{'is-expand': !keyForValidate[item.field].success}">
@@ -27,8 +27,8 @@
 
       </div>
     </div>
-    <slot v-if="!readonly && $slots.FOOTER" name="FOOTER"></slot>
-    <div v-else-if="!readonly && !$slots.FOOTER" class="g3-config-form-footer">
+    <slot v-if="!readonly && $slots._FOOTER" name="_FOOTER"></slot>
+    <div v-else-if="!readonly && !$slots._FOOTER" class="g3-config-form-footer">
       <button @click="submit">submit</button>
     </div>
   </div>
@@ -36,6 +36,7 @@
 
 <script lang="ts">
 import {
+  type Component,
   defineAsyncComponent,
   defineComponent,
   nextTick,
@@ -45,10 +46,9 @@ import {
 } from "vue"
 import type {
   keyForString,
-  MetaConfig,
-  MetaConfigDependency,
+  MetaConfig, MetaConfigComponent,
   MetaKeyConfig,
-  MetaKeyConfigWithField,
+  MetaKeyConfigWithField, OmitDepMetaKeyConfig, PromiseComponent,
 } from "./typings/meta-config.ts"
 import {containKey, hasFunction} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
@@ -56,6 +56,7 @@ import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
 import {G3Context} from "guava3shome-h5-utils"
 import {deepClone} from "guava3shome-h5-utils/dist/object-util"
+import {depConditionMap, type MetaConfigDependency} from "./typings/runtime-dependency.ts";
 
 export default defineComponent({
   props: {
@@ -110,13 +111,14 @@ export default defineComponent({
 
     // 配置显示信息集合
     const keyConfigList = ref<MetaKeyConfigWithField[]>([])
-    const renderComponentMap = ref<Record<keyForString<MetaConfig>, ShallowRef>>({})
+    const renderComponentMap = ref<Record<keyForString<MetaConfig>, ShallowRef | Component>>({})
+    const renderComponentRefs = shallowRef<Record<keyForString<MetaConfig>, MetaConfigComponent>>({})
     // 表单问题答案对象
     const keyForValues = ref<Record<keyForString<MetaConfig>, any>>({})
     // 配置字段依赖对象
-    const backupKeyDependencies = ref<Record<keyForString<MetaConfig>, MetaConfigDependency[]>>({})
+    const backupKeyDependencies: Record<keyForString<MetaConfig>, MetaConfigDependency[]> = {}
     // 原始配置字段依赖对象
-    const backupKeyConfig = ref<Record<keyForString<MetaConfig>, MetaKeyConfigWithField>>({})
+    const backupKeyConfig: Record<keyForString<MetaConfig>, MetaKeyConfigWithField> = {}
 
     ctx.addContextProps({
       keyConfigList,
@@ -129,7 +131,7 @@ export default defineComponent({
     const {keyForValidate, fillValidate, processValidate} = ctx.add(useComponentValidator)
     const {disableEffect, triggerDataEffect} = ctx.add(useDataEffect)
 
-    function fillValue(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
+    function fillValue(field: keyForString<MetaConfig>, config: OmitDepMetaKeyConfig): void {
       // use sort：keyData > defaultValue
       let renderValue = props.keyData[field]
 
@@ -150,9 +152,28 @@ export default defineComponent({
       keyForValues.value[field] = renderValue ?? null
     }
 
-    function fillOptions(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
+    function fillOptions(field: keyForString<MetaConfig>, config: OmitDepMetaKeyConfig): void {
       if (hasFunction(config.options)) {
         config.options(field).then(res => config.options = res)
+      }
+    }
+
+    function fillComponent(field: keyForString<MetaConfig>, config: OmitDepMetaKeyConfig, doRender: () => boolean = () => true): void {
+      config.component.bind ??= {}
+      if (!doRender()) {
+        return
+      }
+      renderComponentRefs.value[field] = config.component
+      renderComponentMap.value[field] = hasFunction(config.component.body) ? shallowRef(defineAsyncComponent(config.component.body as PromiseComponent)) : config.component.body
+    }
+
+    function fillDependencies(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
+      const {dependencies, ...otherField} = config
+      // dependency init
+      if (dependencies?.length) {
+        dependencies.sort((a: MetaConfigDependency, b: MetaConfigDependency) => b.priority - a.priority)
+        backupKeyDependencies[field] = deepClone(dependencies)
+        backupKeyConfig[field] = {field, ...otherField}
       }
     }
 
@@ -174,18 +195,8 @@ export default defineComponent({
               }
               fillValidate(field, element)
               fillOptions(field, element)
-
-              const {dependencies, ...otherField} = element
-              renderComponentMap.value[field] = shallowRef(defineAsyncComponent(element.component))
-              element.componentProps ??= {}
-
-              // dependency init
-              if (dependencies?.length) {
-                dependencies.sort((a: MetaConfigDependency, b: MetaConfigDependency) => b.priority - a.priority)
-                backupKeyDependencies.value[field] = deepClone(dependencies)
-                backupKeyConfig.value[field] = {...otherField}
-              }
-
+              fillComponent(field, element)
+              fillDependencies(field, element)
               return element
             })
             .filter(item => !item.fixed)
@@ -205,9 +216,7 @@ export default defineComponent({
 
       const changeKeys: { [key: string]: boolean } = {}
       for (const key in newValue) {
-        if (newValue[key] !== previousKeyForValues[key]) {
-          changeKeys[key] = true
-        }
+        changeKeys[key] = newValue[key] !== previousKeyForValues[key]
       }
       previousKeyForValues = JSON.parse(JSON.stringify(newValue))
 
@@ -242,15 +251,13 @@ export default defineComponent({
         change: false,
         data: oldKeyConfig
       }
-      const fieldDependencyList = backupKeyDependencies.value[oldKeyConfig.field]
+      const fieldDependencyList = backupKeyDependencies[oldKeyConfig.field]
       if (fieldDependencyList?.length) {
         let resetScopeInfo = null
         for (const dep of fieldDependencyList) {
           const findValue = keyForValues.value[dep.depField]
 
-          if (dep.depCondition === 'some' && dep.depValues.includes(findValue) ||
-              dep.depCondition === 'not_in' && !dep.depValues.includes(findValue) ||
-              dep.depCondition === 'all' && findValue.every((dV: any) => dep.depValues.includes(dV))) {
+          if (depConditionMap[dep.depCondition](dep.depValues, findValue)) {
             resetScopeInfo = Object.assign(oldKeyConfig, dep.reset)
             // 清空不显示key的value
             if (!resetScopeInfo.display) {
@@ -258,18 +265,21 @@ export default defineComponent({
             }
             break
           } else {
-            resetScopeInfo = Object.assign(oldKeyConfig, backupKeyConfig.value[oldKeyConfig.field])
+            resetScopeInfo = Object.assign(oldKeyConfig, backupKeyConfig[oldKeyConfig.field])
           }
         }
 
         // 针对单一个字段通过
         if (resetScopeInfo) {
           result.change = true
+          fillComponent(oldKeyConfig.field, resetScopeInfo, () => {
+            return resetScopeInfo.component !== renderComponentRefs.value[oldKeyConfig.field]
+          })
           // result.data = resetScopeInfo
-        } else if (containKey(backupKeyConfig.value, oldKeyConfig.field)) {
+        } else if (containKey(backupKeyConfig, oldKeyConfig.field)) {
           // 恢复
           result.change = true
-          result.data = backupKeyConfig.value[oldKeyConfig.field]
+          result.data = backupKeyConfig[oldKeyConfig.field]
         }
       }
 
@@ -291,8 +301,8 @@ export default defineComponent({
           return
         }
         // 提交数据
-        const cloneData = deepClone(keyForValues.value);
-        if (slots.FOOTER) {
+        const cloneData = deepClone(keyForValues.value)
+        if (slots._FOOTER) {
           return cloneData
         } else {
           emit('submit', cloneData)

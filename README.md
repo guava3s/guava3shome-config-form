@@ -69,14 +69,18 @@ app.mount('#app')
               value: true,
               message: 'Please input name'
             },
-            component: () => import('../lib/component/G3Input.vue'),
-            order: 1,
-            valueType: 'STRING',
-            componentProps: {
-              placeholder: 'Please input name',
-              type: 'text',
-              disable: false
+            // 引用第三方组件，也可进行手动封装
+            component: {
+                body: () => import('../lib/component/G3Input.vue'),
+                // 第三方组件的props
+                bind: {
+                  placeholder: 'Please input name',
+                  type: 'text',
+                  disable: false
+                }
             },
+            order: 1,
+            valueType: String,
             validator: {
               triggerType: 'change',
               triggerDelay: 0,
@@ -84,7 +88,6 @@ app.mount('#app')
                 if (value.length > 32) {
                   fail('The username length should not exceed 32.')
                 }
-
                 success()
               }
             },
@@ -96,14 +99,16 @@ app.mount('#app')
               value: true,
               message: 'Please input password'
             },
-            component: () => import('../lib/component/G3Input.vue'),
-            order: 2,
-            valueType: 'STRING',
-            componentProps: {
-              placeholder: 'your password',
-              type: 'password',
-              disable: false
+            component: {
+                body: () => import('../lib/component/G3Input.vue'),
+                bind: {
+                  placeholder: 'your password',
+                  type: 'password',
+                  disable: false
+                }
             },
+            order: 2,
+            valueType: String,
             dependencies: [
               {
                 depField: 'name',
@@ -127,14 +132,14 @@ app.mount('#app')
               value: true,
               message: 'Gender cannot be empty.'
             },
-            // 引用第三方组件，也可进行手动封装
-            component: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
-            order: 3,
-            valueType: 'number',
-            // 第三方组件的props
-            componentProps: {
-              placeholder: 'Please select your gender',
+            component: {
+                body: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
+                bind: {
+                    placeholder: 'Please select your gender',
+                }
             },
+            order: 3,
+            valueType: Number,
             options: [
               {label: 'Male', value: 1},
               {label: 'Female', value: 0}
@@ -194,7 +199,7 @@ app.mount('#app')
 | 插槽名称            | 说明                              |
 |-----------------|---------------------------------|
 | `TITLE-[field]` | 标题插槽。                           |
-| `FOOTER`        | 替代默认的提交按钮。                      |
+| `_FOOTER`       | 替代默认的提交按钮。                      |
 | `item.field`    | 动态生成的插槽，依据每个字段的 `field` 属性名来绑定。 |
 
 ### Data Effect
@@ -216,6 +221,12 @@ app.mount('#app')
 ```
 
 ## 表单配置字段解析
+
+```ts
+interface MetaConfig {
+    [field: string]: MetaKeyConfig
+}
+```
 
 
 ```ts
@@ -256,12 +267,15 @@ interface MetaKeyConfig {
     /**
      * 表单项组件
      */
-    component: () => Promise<Component>
-
-    /**
-     * 自定义表单项组件props属性
-     */
-    componentProps: MetaKeyComponentProps
+    component: {
+        body: () => Promise<Component> | Component
+        /**
+         * 自定义表单项组件props属性
+         */
+        bind?: {
+            [key: string]: any
+        }
+    }
 
     /**
      * 配置顺序
@@ -271,18 +285,24 @@ interface MetaKeyConfig {
     /**
      * 默认值，若是在props的keyData存在字段初始值，则不使用该字段值
      */
-    defaultValue?: string | number | boolean | string[] | number[] | boolean[]
+    defaultValue?: any
 
     /**
      * 默认值类型
      */
-    valueType?: 'string' | 'number' | 'boolean' | 'base_array'
+    valueType?: ((value?: any) => string)   // 对应 String
+              | ((value?: any) => number)   // 对应 Number
+              | ((value?: any) => boolean)  // 对应 Boolean
+              | ((value?: any) => any[])    // 对应 Array
+              | ((value?: any) => object);  // 对应 Object
 
     /**
      * 校验器，对required配置进行增强，支持函数与对象配置
      * 当同时存在required与validator字段时，会依次对required、validator字段信息进行校验
      */
-    validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void> | {
+    validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: {
+        [key: string]: any
+    }) => Promise<void> | {
         /**
          * 校验函数
          * @param value 表单项值
@@ -290,7 +310,9 @@ interface MetaKeyConfig {
          * @param fail 失败信号函数，在校验失败时执行 fail(message: string)
          * @param props 该表单项所引用组件的props，提供校验时动态更改功能
          */
-        validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+        validate: (value: any, success: SuccessCallback, fail: FailCallback, props: {
+            [key: string]: any
+        }) => Promise<void>
 
         /**
          * 触发类型，因change/blur动作而触发；默认值 change
@@ -388,12 +410,15 @@ interface MetaKeyConfig {
             /**
              * 表单项组件
              */
-            component: () => Promise<Component>
-
-            /**
-             * 自定义表单项组件props属性
-             */
-            componentProps: MetaKeyComponentProps
+            component: {
+                body: () => Promise<Component> | Component
+                /**
+                 * 自定义表单项组件props属性
+                 */
+                bind?: {
+                    [key: string]: any
+                }
+            }
 
             /**
              * 配置顺序
@@ -403,18 +428,24 @@ interface MetaKeyConfig {
             /**
              * 默认值，若是在props的keyData存在字段初始值，则不使用该字段值
              */
-            defaultValue?: string | number | boolean | string[] | number[] | boolean[]
+            defaultValue?: any
 
             /**
              * 默认值类型
              */
-            valueType?: 'string' | 'number' | 'boolean' | 'base_array'
+            valueType?: ((value?: any) => string)   // 对应 String
+                      | ((value?: any) => number)   // 对应 Number
+                      | ((value?: any) => boolean)  // 对应 Boolean
+                      | ((value?: any) => any[])    // 对应 Array
+                      | ((value?: any) => object);  // 对应 Object
 
             /**
              * 校验器，对required配置进行增强，支持函数与对象配置
              * 当同时存在required与validator字段时，会依次对required、validator字段信息进行校验
              */
-            validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void> | {
+            validator?: (value: any, success: SuccessCallback, fail: FailCallback, props: {
+                [key: string]: any
+            }) => Promise<void> | {
                 /**
                  * 校验函数
                  * @param value 表单项值
@@ -422,7 +453,9 @@ interface MetaKeyConfig {
                  * @param fail 失败信号函数，在校验失败时执行 fail(message: string)
                  * @param props 该表单项所引用组件的props，提供校验时动态更改功能
                  */
-                validate: (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+                validate: (value: any, success: SuccessCallback, fail: FailCallback, props: {
+                    [key: string]: any
+                }) => Promise<void>
 
                 /**
                  * 触发类型，因change/blur动作而触发；默认值 change

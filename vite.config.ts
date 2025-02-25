@@ -6,6 +6,11 @@ export default defineConfig({
     plugins: [
         vue(),
     ],
+    // resolve: {
+    //     alias: {
+    //         'vue': 'vue/dist/vue.esm-bundler.js' // 包含编译器的构建版本
+    //     }
+    // },
     build: {
         commonjsOptions: {
             transformMixedEsModules: true, // 允许混合 CommonJS 和 ESM 模块
