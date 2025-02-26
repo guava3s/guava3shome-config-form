@@ -10,7 +10,7 @@ dynamically import components through the 'component' field, supporting both cus
 libraries like AntUI/ElementUI.
 
 When using dynamically imported components, developers can initialize and control component props via the '
-componentProps' field for enhanced flexibility.
+component/bind' field for enhanced flexibility.
 
 ## Getting Started
 
