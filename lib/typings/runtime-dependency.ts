@@ -15,5 +15,11 @@ export interface MetaConfigDependency {
 export const depConditionMap = {
     'some': (values: DepValues, target: any): boolean => values.includes(target),
     'not_in': (values: DepValues, target: any): boolean => !values.includes(target),
-    'all': (values: DepValues, target: any): boolean => !target.every((item: any) => values.includes(item)),
+    'all': (values: DepValues, target: any): boolean => {
+        let arr = target
+        if (!Array.isArray(target)) {
+            arr = [target]
+        }
+        return !arr.every((item: any) => values.includes(item))
+    },
 }
