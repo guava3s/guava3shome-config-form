@@ -12,7 +12,7 @@ import {hasFunction} from "./type-check.ts";
 
 const empty_prompt: string = 'The field value cannot be empty.'
 
-export default function useComponentValidator({context}: InternalContext) {
+export default function useComponentValidator({context, props}: InternalContext) {
 
     const keyForValidate = ref<Record<keyForString<MetaConfig>, ValidateResultParams>>({})
     const keyForTimer: Record<keyForString<MetaConfig>, number> = {}
@@ -26,7 +26,7 @@ export default function useComponentValidator({context}: InternalContext) {
     // required 与 validator 相互独立，required < validator
     function fillValidate(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
         config.required.value ??= true
-        config.required.immediate ??= true
+        config.required.immediate ??= props.immediate
         if (config.required.value) {
             config.required.message ??= empty_prompt
         }
@@ -52,7 +52,7 @@ export default function useComponentValidator({context}: InternalContext) {
 
         config.validator.triggerType ??= TriggerType.change
         config.validator.triggerDelay ??= (config.validator.triggerType === TriggerType.change ? 200 : 0)
-        config.validator.immediate ??= true
+        config.validator.immediate ??= props.immediate
         config.validator.scope ??= TriggerScope.single
     }
 

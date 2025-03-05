@@ -81,13 +81,13 @@ app.mount('#app')
             },
             // Referencing third-party components can also be manually encapsulated
             component: {
-                body: () => import('../lib/component/G3Input.vue'),
-                // Props of third-party components
-                bind: {
-                  placeholder: 'Please input name',
-                  type: 'text',
-                  disable: false
-                }
+              body: () => import('../lib/component/G3Input.vue'),
+              // Props of third-party components
+              bind: {
+                placeholder: 'Please input name',
+                type: 'text',
+                disable: false
+              }
             },
             order: 1,
             valueType: String,
@@ -110,12 +110,12 @@ app.mount('#app')
               message: 'Please input password'
             },
             component: {
-                body: () => import('../lib/component/G3Input.vue'),
-                bind: {
-                  placeholder: 'Enter password',
-                  type: 'password',
-                  disable: false
-                }
+              body: () => import('../lib/component/G3Input.vue'),
+              bind: {
+                placeholder: 'Enter password',
+                type: 'password',
+                disable: false
+              }
             },
             order: 2,
             valueType: String,
@@ -143,10 +143,10 @@ app.mount('#app')
               message: 'Gender cannot be empty.'
             },
             component: {
-                body: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
-                bind: {
-                  placeholder: 'Please select your gender',
-                }
+              body: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
+              bind: {
+                placeholder: 'Please select your gender',
+              }
             },
             order: 3,
             valueType: Number,
@@ -156,8 +156,8 @@ app.mount('#app')
             ]
           },
           system: {
-              fixed: true,
-              defaultValue: true
+            fixed: true,
+            defaultValue: true
           }
         }
       }
@@ -179,13 +179,14 @@ app.mount('#app')
 
 #### Props
 
-| Property        | Type       | Default	 | Description                                                                                              |
-|-----------------|------------|----------|----------------------------------------------------------------------------------------------------------|
-| `keyConfig`     | `Object`   | `{}`     | Configuration object containing field details (title, required status, default values, etc.)             |
-| `keyData`       | `Object`   | `{}`     | Initial form data (overrides keyConfig defaults when provided)                                           |
-| `readonly`      | `Boolean`  | `false`  | Read-only mode toggle                                                                                    |
-| `keyDataEffect` | `Object`   | `{}`     | Master-slave field relationships: {[masterField: string]: Array<{slaveField: string, valueMap: Object}>} |
-| `beforeSubmit`  | `Function` | `()=>{}` | Pre-submission hook (executes before validation)                                                         
+| Property        | Type       | Default	 | Description                                                                                                                                                                                                                   |
+|-----------------|------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `keyConfig`     | `Object`   | `{}`     | Configuration object containing field details (title, required status, default values, etc.)                                                                                                                                  |
+| `keyData`       | `Object`   | `{}`     | Initial form data (overrides keyConfig defaults when provided)                                                                                                                                                                |
+| `readonly`      | `Boolean`  | `false`  | Read-only mode toggle                                                                                                                                                                                                         |
+| `keyDataEffect` | `Object`   | `{}`     | Master-slave field relationships: {[masterField: string]: Array<{slaveField: string, valueMap: Object}>}                                                                                                                      |
+| `beforeSubmit`  | `Function` | `()=>{}` | Pre-submission hook (executes before validation)                                                                                                                                                                              
+| `immediate`     | `Boolean`  | `true`   | Whether the global configuration immediately performs verification, defaults to true; When it is set to false and the immediate value of the field is set to true separately, it is not affected by the global configuration. 
 
 #### Events
 
@@ -270,10 +271,10 @@ interface MetaKeyConfig {
      * Default value type
      */
     valueType?: ((value?: any) => string)   // => String
-              | ((value?: any) => number)   // => Number
-              | ((value?: any) => boolean)  // => Boolean
-              | ((value?: any) => any[])    // => Array
-              | ((value?: any) => object);  // => Object
+        | ((value?: any) => number)   // => Number
+        | ((value?: any) => boolean)  // => Boolean
+        | ((value?: any) => any[])    // => Array
+        | ((value?: any) => object);  // => Object
 
     /**
      * Validator, enhances required configuration, supports function and object configuration
@@ -396,10 +397,10 @@ interface MetaKeyConfig {
              * Default value type
              */
             valueType?: ((value?: any) => string)   // => String
-                      | ((value?: any) => number)   // => Number
-                      | ((value?: any) => boolean)  // => Boolean
-                      | ((value?: any) => any[])    // => Array
-                      | ((value?: any) => object);  // => Object
+                | ((value?: any) => number)   // => Number
+                | ((value?: any) => boolean)  // => Boolean
+                | ((value?: any) => any[])    // => Array
+                | ((value?: any) => object);  // => Object
 
             /**
              * Validator, enhances required configuration, supports function and object configuration

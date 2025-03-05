@@ -102,6 +102,11 @@ export default defineComponent({
       type: [Boolean, Function],
       required: false,
       default: false
+    },
+    immediate: {
+      type: Boolean,
+      required: false,
+      default: true
     }
   },
   emits: ['submit'],

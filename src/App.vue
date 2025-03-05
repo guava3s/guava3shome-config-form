@@ -20,7 +20,7 @@ const scopeConfig = {
       required: {
         value: true,
         message: 'Please input name,Please input namePlease input name,Please input name,Please input name,Please input namePlease input name,Please input name,Please input name,Please input name,Please input name,Please input name',
-        immediate: false
+        // immediate: false
       },
       component: {
         body: () => import('../lib/component/G3Input.vue'),
@@ -57,7 +57,7 @@ const scopeConfig = {
       required: {
         value: true,
         message: 'Please input test2',
-        immediate: false
+        // immediate: false
       },
       component: {
         body: () => import('../lib/component/G3Input.vue'),
@@ -186,7 +186,7 @@ async function submit() {
 
 <template>
   <div style="max-width: 600px">
-    <G3ConfigForm :key-config="scopeConfig.scope1" ref="configForm">
+    <G3ConfigForm :key-config="scopeConfig.scope1" ref="configForm" :immediate="false">
       <template #_FOOTER>
         <button @click="submit">submit</button>
       </template>

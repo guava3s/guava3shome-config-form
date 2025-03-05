@@ -71,13 +71,13 @@ app.mount('#app')
             },
             // 引用第三方组件，也可进行手动封装
             component: {
-                body: () => import('../lib/component/G3Input.vue'),
-                // 第三方组件的props
-                bind: {
-                  placeholder: 'Please input name',
-                  type: 'text',
-                  disable: false
-                }
+              body: () => import('../lib/component/G3Input.vue'),
+              // 第三方组件的props
+              bind: {
+                placeholder: 'Please input name',
+                type: 'text',
+                disable: false
+              }
             },
             order: 1,
             valueType: String,
@@ -100,12 +100,12 @@ app.mount('#app')
               message: 'Please input password'
             },
             component: {
-                body: () => import('../lib/component/G3Input.vue'),
-                bind: {
-                  placeholder: 'your password',
-                  type: 'password',
-                  disable: false
-                }
+              body: () => import('../lib/component/G3Input.vue'),
+              bind: {
+                placeholder: 'your password',
+                type: 'password',
+                disable: false
+              }
             },
             order: 2,
             valueType: String,
@@ -133,10 +133,10 @@ app.mount('#app')
               message: 'Gender cannot be empty.'
             },
             component: {
-                body: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
-                bind: {
-                    placeholder: 'Please select your gender',
-                }
+              body: () => import('element-plus/es/components/select/index.mjs').then(m => m.ElSelect),
+              bind: {
+                placeholder: 'Please select your gender',
+              }
             },
             order: 3,
             valueType: Number,
@@ -146,9 +146,9 @@ app.mount('#app')
             ]
           },
           system: {
-              fixed: true,
-              defaultValue: true,
-              valueType: Boolean
+            fixed: true,
+            defaultValue: true,
+            valueType: Boolean
           }
         }
       }
@@ -186,6 +186,7 @@ app.mount('#app')
 | `readonly`      | `Boolean`  | `false`  | 是否为只读模式，默认为 `false`，在该模式下表单项不可编辑。                                                                                           |
 | `keyDataEffect` | `Object`   | `{}`     | 字段数据之间的影响规则，格式为 `{[masterField: string]: Array<{slaveField: string, valueMap: {mFValue1: sFValue1, ...}}>`，指定数据变化时如何影响其他字段。 |
 | `beforeSubmit`  | `Function` | `()=>{}` | 在表单提交前执行函数（此时还未进行校验）                                                                                                        |
+| `immediate`     | `Boolean`  | `true`   | 全局配置是否立即执行校验，默认为true；当其设置为false，且单独配置field的immediate为true，则不受全局配置影响                                                         |
 
 ### Event
 
@@ -228,14 +229,13 @@ interface MetaConfig {
 }
 ```
 
-
 ```ts
 interface MetaKeyConfig {
     /**
      * 是否为固定字段（不需要显示/依赖/校验）
      */
     fixed?: boolean
-    
+
     /**
      * 标题
      */
@@ -291,10 +291,10 @@ interface MetaKeyConfig {
      * 默认值类型
      */
     valueType?: ((value?: any) => string)   // 对应 String
-              | ((value?: any) => number)   // 对应 Number
-              | ((value?: any) => boolean)  // 对应 Boolean
-              | ((value?: any) => any[])    // 对应 Array
-              | ((value?: any) => object);  // 对应 Object
+        | ((value?: any) => number)   // 对应 Number
+        | ((value?: any) => boolean)  // 对应 Boolean
+        | ((value?: any) => any[])    // 对应 Array
+        | ((value?: any) => object);  // 对应 Object
 
     /**
      * 校验器，对required配置进行增强，支持函数与对象配置
@@ -434,10 +434,10 @@ interface MetaKeyConfig {
              * 默认值类型
              */
             valueType?: ((value?: any) => string)   // 对应 String
-                      | ((value?: any) => number)   // 对应 Number
-                      | ((value?: any) => boolean)  // 对应 Boolean
-                      | ((value?: any) => any[])    // 对应 Array
-                      | ((value?: any) => object);  // 对应 Object
+                | ((value?: any) => number)   // 对应 Number
+                | ((value?: any) => boolean)  // 对应 Boolean
+                | ((value?: any) => any[])    // 对应 Array
+                | ((value?: any) => object);  // 对应 Object
 
             /**
              * 校验器，对required配置进行增强，支持函数与对象配置
