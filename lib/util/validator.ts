@@ -20,7 +20,7 @@ export default function useComponentValidator({context, props}: InternalContext)
     // 默认校验: return success?
     function defaultValidate(field: keyForString<MetaConfig>, required: RequiredDescValidator): boolean {
         const fieldValue = context.keyForValues.value[field];
-        return required.value ? ![null, undefined, ''].includes(fieldValue) : true
+        return required.value ? !['null', 'undefined', '', '[object Object]'].includes(String(fieldValue)) : true
     }
 
     // required 与 validator 相互独立，required < validator
