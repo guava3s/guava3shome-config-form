@@ -32,7 +32,7 @@ export interface RequiredDescValidator {
 export type SuccessCallback = (value: unknown) => void
 export type FailCallback = (value: unknown) => void
 
-export type ValidateFunction = (value: any, success: SuccessCallback, fail: FailCallback, props: MetaKeyComponentProps) => Promise<void>
+export type ValidateFunction = (value: any, success: SuccessCallback, fail: FailCallback, bind?: MetaKeyComponentProps) => Promise<void>
 
 export interface InputValidator {
     validate: ValidateFunction

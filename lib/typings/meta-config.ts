@@ -10,6 +10,7 @@ export interface MetaConfig {
     [field: string]: MetaKeyConfig
 }
 
+// 入口接口
 export interface MetaKeyConfig {
     // 当fixed为true时，除defaultValue/valueType外的字段全部无效，默认为false
     fixed?: boolean
@@ -39,8 +40,9 @@ export interface MetaKeyComponentProps {
 }
 
 export type MetaDependencyCondition = 'some' | 'not_in' | 'all'
-export type OmitDepMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies' | 'fixed'>
-export type MetaKeyConfigWithField = OmitDepMetaKeyConfig & { readonly field: keyForString<MetaConfig> }
+export type OmitEdMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies' | 'fixed'>
+// final runtime
+export type OmitEdMetaKeyConfigWithField = OmitEdMetaKeyConfig & { readonly field: keyForString<MetaConfig> }
 
 
 export interface MetaOptionConfig {

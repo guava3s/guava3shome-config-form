@@ -1,5 +1,5 @@
 import {ref} from "vue";
-import type {keyForString, MetaConfig, MetaKeyConfig, MetaKeyConfigWithField} from "../typings/meta-config.ts";
+import type {keyForString, MetaConfig, MetaKeyConfig, OmitEdMetaKeyConfigWithField} from "../typings/meta-config.ts";
 import type {
     InputValidator,
     RequiredDescValidator,
@@ -9,6 +9,7 @@ import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
 import {deepClone} from "guava3shome-h5-utils/dist/object-util";
 import {hasFunction} from "./type-check.ts";
+import {errorDisplayRequired} from "../typings/runtime-error.ts";
 
 const empty_prompt: string = 'The field value cannot be empty.'
 
@@ -23,9 +24,11 @@ export default function useComponentValidator({context, props}: InternalContext)
         return required.value ? !['null', 'undefined', '', '[object Object]'].includes(String(fieldValue)) : true
     }
 
+
     // required 与 validator 相互独立，required < validator
     function fillValidate(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
         config.required.value ??= true
+        errorDisplayRequired(field, config.display, config.required.value)
         config.required.immediate ??= props.immediate
         if (config.required.value) {
             config.required.message ??= empty_prompt
@@ -56,7 +59,7 @@ export default function useComponentValidator({context, props}: InternalContext)
         config.validator.scope ??= TriggerScope.single
     }
 
-    async function validateItem(config: MetaKeyConfigWithField): Promise<boolean> {
+    async function validateItem(config: OmitEdMetaKeyConfigWithField): Promise<boolean> {
         const kfV = keyForValidate.value[config.field]
         const defaultSuccess = defaultValidate(config.field, config.required)
         kfV.success = defaultSuccess
@@ -74,9 +77,9 @@ export default function useComponentValidator({context, props}: InternalContext)
                         kfV.controller?.signal.removeEventListener('abort', onAbort)
                         kfV.controller = null
                     }
-                    kfV.controller?.signal.addEventListener('abort', onAbort)
+                    kfV.controller?.signal.addEventListener('abort', onAbort);
 
-                    config.validator?.validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.component.bind)
+                    (config.validator as InputValidator)?.validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.component.bind)
                 })
                 kfV.success = true
             } catch (e) {
@@ -94,10 +97,10 @@ export default function useComponentValidator({context, props}: InternalContext)
     }
 
     // 执行change校验
-    async function processValidate(configList: MetaKeyConfigWithField[], changeKeys: {
+    async function processValidate(configList: OmitEdMetaKeyConfigWithField[], changeKeys: {
         [key: string]: boolean
     } | null = null): Promise<boolean> {
-        let list: MetaKeyConfigWithField[] = configList
+        let list: OmitEdMetaKeyConfigWithField[] = configList
         if (changeKeys) {
             list = configList.filter(item => changeKeys[item.field])
             if (list.some(item => item.validator && !hasFunction(item.validator) && item.validator.scope === TriggerScope.propagation)) {

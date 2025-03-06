@@ -1,6 +1,6 @@
 {
   "name": "guava3shome-config-form",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "type": "module",
   "keywords": [
     "vue",
@@ -20,8 +20,7 @@
   "author": "HuangSouth <2168626265@qq.com>",
   "license": "MIT",
   "dependencies": {
-    "guava3shome-h5-utils": "^1.1.0",
-    "vue": "^3.4.21"
+    "guava3shome-h5-utils": "^1.1.0"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.0",
@@ -31,6 +30,7 @@
     "npm-run-all2": "^7.0.2",
     "typescript": "~5.6.3",
     "vite": "^6.0.5",
+    "vue": "^3.4.21",
     "vite-plugin-vue-devtools": "^7.6.8",
     "vue-tsc": "^2.1.10"
   }

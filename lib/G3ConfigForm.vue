@@ -48,9 +48,9 @@ import type {
   keyForString,
   MetaConfig, MetaConfigComponent,
   MetaKeyConfig,
-  MetaKeyConfigWithField, OmitDepMetaKeyConfig, PromiseComponent,
+  OmitEdMetaKeyConfigWithField, OmitEdMetaKeyConfig, PromiseComponent,
 } from "./typings/meta-config.ts"
-import {containKey, hasFunction} from "./util/type-check.ts"
+import {checkObjectIdentical, hasFunction} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
 import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
@@ -115,7 +115,7 @@ export default defineComponent({
     const ctx = new G3Context(props)
 
     // 配置显示信息集合
-    const keyConfigList = ref<MetaKeyConfigWithField[]>([])
+    const keyConfigList = ref<OmitEdMetaKeyConfigWithField[]>([])
     const renderComponentMap = ref<Record<keyForString<MetaConfig>, ShallowRef | Component>>({})
     const renderComponentRefs = shallowRef<Record<keyForString<MetaConfig>, MetaConfigComponent>>({})
     // 表单问题答案对象
@@ -123,7 +123,7 @@ export default defineComponent({
     // 配置字段依赖对象
     const backupKeyDependencies: Record<keyForString<MetaConfig>, MetaConfigDependency[]> = {}
     // 原始配置字段依赖对象
-    const backupKeyConfig: Record<keyForString<MetaConfig>, MetaKeyConfigWithField> = {}
+    const backupKeyConfig: Record<keyForString<MetaConfig>, OmitEdMetaKeyConfigWithField> = {}
 
     ctx.addContextProps({
       keyConfigList,
@@ -136,7 +136,7 @@ export default defineComponent({
     const {keyForValidate, fillValidate, processValidate} = ctx.add(useComponentValidator)
     const {disableEffect, triggerDataEffect} = ctx.add(useDataEffect)
 
-    function fillValue(field: keyForString<MetaConfig>, config: OmitDepMetaKeyConfig): void {
+    function fillValue(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig): void {
       // use sort：keyData > defaultValue
       let renderValue = props.keyData[field]
 
@@ -157,29 +157,30 @@ export default defineComponent({
       keyForValues.value[field] = renderValue ?? null
     }
 
-    function fillOptions(field: keyForString<MetaConfig>, config: OmitDepMetaKeyConfig): void {
+    function fillOptions(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig): void {
       if (hasFunction(config.options)) {
         config.options(field).then(res => config.options = res)
       }
     }
 
-    function fillComponent(field: keyForString<MetaConfig>, config: OmitDepMetaKeyConfig, doRender: () => boolean = () => true): void {
+    function fillComponent(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig, notRender: () => boolean = () => false): void {
       config.component.bind ??= {}
-      if (!doRender()) {
+      if (notRender()) {
         return
       }
       renderComponentRefs.value[field] = config.component
       renderComponentMap.value[field] = hasFunction(config.component.body) ? shallowRef(defineAsyncComponent(config.component.body as PromiseComponent)) : config.component.body
     }
 
-    function fillDependencies(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
-      const {dependencies, ...otherField} = config
+    function fillDependencies(field: keyForString<MetaConfig>, config: MetaKeyConfig): OmitEdMetaKeyConfigWithField {
+      const {dependencies, fixed, ...otherField} = config
       // dependency init
       if (dependencies?.length) {
         dependencies.sort((a: MetaConfigDependency, b: MetaConfigDependency) => b.priority - a.priority)
         backupKeyDependencies[field] = deepClone(dependencies)
-        backupKeyConfig[field] = {field, ...otherField}
+        backupKeyConfig[field] = {field, ...deepClone(otherField)}
       }
+      return Object.assign(otherField, {field})
     }
 
     // init
@@ -188,23 +189,15 @@ export default defineComponent({
         const scopeElement: MetaConfig = newValue.keyConfig
 
         keyConfigList.value = Object.entries(scopeElement)
+            .filter(item => !item[1].fixed)
             .map(([field, config]) => {
-              const element = {
-                field,
-                ...deepClone(config)
-              }
-              fillValue(field, element)
-              element.fixed ??= false
-              if (element.fixed) {
-                return element
-              }
-              fillValidate(field, element)
-              fillOptions(field, element)
-              fillComponent(field, element)
-              fillDependencies(field, element)
-              return element
+              const configCopy = deepClone(config)
+              fillValue(field, configCopy)
+              fillValidate(field, configCopy)
+              fillOptions(field, configCopy)
+              fillComponent(field, configCopy)
+              return fillDependencies(field, configCopy)
             })
-            .filter(item => !item.fixed)
             .sort((v1, v2) => v1.order - v2.order)
             // dependency search, 替换对应元数据
             .map(item => triggerReset(item).data)
@@ -250,7 +243,7 @@ export default defineComponent({
     }, {deep: true})
 
     // trigger reconfiguration
-    function triggerReset(oldKeyConfig: MetaKeyConfigWithField) {
+    function triggerReset(oldKeyConfig: OmitEdMetaKeyConfigWithField) {
 
       const result = {
         change: false,
@@ -258,34 +251,24 @@ export default defineComponent({
       }
       const fieldDependencyList = backupKeyDependencies[oldKeyConfig.field]
       if (fieldDependencyList?.length) {
-        let resetScopeInfo = null
         for (const dep of fieldDependencyList) {
           const findValue = keyForValues.value[dep.depField]
 
           if (depConditionMap[dep.depCondition](dep.depValues, findValue)) {
-            resetScopeInfo = Object.assign(oldKeyConfig, dep.reset)
+            result.change = true
+            Object.assign(result.data, dep.reset)
             // 清空不显示key的value
-            if (!resetScopeInfo.display) {
+            if (!result.data.display) {
               keyForValues.value[oldKeyConfig.field] = ''
             }
             break
           } else {
-            resetScopeInfo = Object.assign(oldKeyConfig, backupKeyConfig[oldKeyConfig.field])
+            result.change = !checkObjectIdentical(result.data, backupKeyConfig[oldKeyConfig.field]);
+            result.change && Object.assign(result.data, backupKeyConfig[oldKeyConfig.field])
           }
         }
 
-        // 针对单一个字段通过
-        if (resetScopeInfo) {
-          result.change = true
-          fillComponent(oldKeyConfig.field, resetScopeInfo, () => {
-            return resetScopeInfo.component !== renderComponentRefs.value[oldKeyConfig.field]
-          })
-          // result.data = resetScopeInfo
-        } else if (containKey(backupKeyConfig, oldKeyConfig.field)) {
-          // 恢复
-          result.change = true
-          result.data = backupKeyConfig[oldKeyConfig.field]
-        }
+        fillComponent(oldKeyConfig.field, result.data, () => checkObjectIdentical(renderComponentRefs.value[oldKeyConfig.field], result.data.component))
       }
 
       return result

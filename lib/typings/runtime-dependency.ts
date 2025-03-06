@@ -1,4 +1,4 @@
-import type {MetaConfig, MetaDependencyCondition, OmitDepMetaKeyConfig} from "./meta-config.ts";
+import type {MetaConfig, MetaDependencyCondition, OmitEdMetaKeyConfig} from "./meta-config.ts";
 
 export type DepValues = Array<string | number | boolean>
 
@@ -8,7 +8,7 @@ export interface MetaConfigDependency {
     depCondition: MetaDependencyCondition
     depValues: DepValues
     priority: number
-    reset: OmitDepMetaKeyConfig
+    reset: OmitEdMetaKeyConfig
 }
 
 
