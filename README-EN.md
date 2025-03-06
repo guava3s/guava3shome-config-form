@@ -270,7 +270,7 @@ interface MetaKeyConfig {
     /**
      * Default value type
      */
-    valueType?: ((value?: any) => string)   // => String
+    valueType: ((value?: any) => string)   // => String
         | ((value?: any) => number)   // => Number
         | ((value?: any) => boolean)  // => Boolean
         | ((value?: any) => any[])    // => Array
@@ -396,7 +396,7 @@ interface MetaKeyConfig {
             /**
              * Default value type
              */
-            valueType?: ((value?: any) => string)   // => String
+            valueType: ((value?: any) => string)   // => String
                 | ((value?: any) => number)   // => Number
                 | ((value?: any) => boolean)  // => Boolean
                 | ((value?: any) => any[])    // => Array

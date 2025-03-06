@@ -50,7 +50,7 @@ import type {
   MetaKeyConfig,
   OmitEdMetaKeyConfigWithField, OmitEdMetaKeyConfig, PromiseComponent,
 } from "./typings/meta-config.ts"
-import {checkObjectIdentical, hasFunction} from "./util/type-check.ts"
+import {checkObjectIdentical, hasFunction, hasObject} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
 import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
@@ -138,23 +138,21 @@ export default defineComponent({
 
     function fillValue(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig): void {
       // use sort：keyData > defaultValue
-      let renderValue = props.keyData[field]
 
-      if (!renderValue && config.defaultValue) {
-        if (config.valueType) {
-          const isArrayType = config.valueType === Array
-          const isObjectType = config.valueType === Object
-
-          renderValue = (isArrayType && Array.isArray(config.defaultValue)) || (isObjectType) ?
-              config.defaultValue :
-              config.valueType(config.defaultValue)
-        } else {
-          // 无 valueType 时直接使用默认值
-          renderValue = config.defaultValue;
-        }
+      const propsKeyData = props.keyData[field]
+      const defaultValue = config.defaultValue
+      // 0 false
+      const isArrayObject = (value: any) => Array.isArray(value) || hasObject(value)
+      const passList = [0, false];
+      if (propsKeyData || passList.includes(propsKeyData)) {
+        keyForValues.value[field] = isArrayObject(propsKeyData) ? propsKeyData : config.valueType(propsKeyData)
+      } else if (defaultValue || passList.includes(defaultValue)) {
+        keyForValues.value[field] = isArrayObject(defaultValue) ? defaultValue : config.valueType(defaultValue)
+      } else if (Number() === config.valueType() || Boolean() === config.valueType()) {
+        keyForValues.value[field] = null
+      } else {
+        keyForValues.value[field] = config.valueType()
       }
-
-      keyForValues.value[field] = renderValue ?? null
     }
 
     function fillOptions(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig): void {
@@ -189,18 +187,21 @@ export default defineComponent({
         const scopeElement: MetaConfig = newValue.keyConfig
 
         keyConfigList.value = Object.entries(scopeElement)
-            .filter(item => !item[1].fixed)
             .map(([field, config]) => {
               const configCopy = deepClone(config)
               fillValue(field, configCopy)
+              if (config.fixed) {
+                return false
+              }
               fillValidate(field, configCopy)
               fillOptions(field, configCopy)
               fillComponent(field, configCopy)
               return fillDependencies(field, configCopy)
             })
-            .sort((v1, v2) => v1.order - v2.order)
+            .filter(item => item)
+            .sort((v1, v2) => (v1 as OmitEdMetaKeyConfigWithField).order - (v2 as OmitEdMetaKeyConfigWithField).order)
             // dependency search, 替换对应元数据
-            .map(item => triggerReset(item).data)
+            .map(item => triggerReset(item as OmitEdMetaKeyConfigWithField).data)
 
         // After initialization, verify the items that need to be verified immediately
         processValidate(keyConfigList.value.filter(obj => obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate))
@@ -258,7 +259,11 @@ export default defineComponent({
             result.change = true
             Object.assign(result.data, dep.reset)
             // 清空不显示key的value
-            if (!result.data.display) {
+            if (result.data.display) {
+              fillValue(oldKeyConfig.field, result.data)
+              fillValidate(oldKeyConfig.field, result.data)
+              fillOptions(oldKeyConfig.field, result.data)
+            } else {
               keyForValues.value[oldKeyConfig.field] = ''
             }
             break

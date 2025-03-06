@@ -20,7 +20,8 @@ export interface MetaKeyConfig {
     component: MetaConfigComponent
     order: number
     defaultValue?: any
-    valueType?: ComponentValueType
+    // 最终提交字段的值类型，与其他端的接口相呼应
+    valueType: ComponentValueType
     // 根据组件自定义 final: InputValidator
     validator?: ValidateFunction | InputValidator
     // final: MetaOptionConfig[]
@@ -39,7 +40,6 @@ export interface MetaKeyComponentProps {
     [key: string]: any
 }
 
-export type MetaDependencyCondition = 'some' | 'not_in' | 'all'
 export type OmitEdMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies' | 'fixed'>
 // final runtime
 export type OmitEdMetaKeyConfigWithField = OmitEdMetaKeyConfig & { readonly field: keyForString<MetaConfig> }

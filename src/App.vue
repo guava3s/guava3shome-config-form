@@ -78,6 +78,7 @@ const scopeConfig = {
           depCondition: 'some',
           priority: 1,
           reset: {
+            display: true,
             required: {
               value: false,
               message: 'Please input test2',
@@ -88,7 +89,9 @@ const scopeConfig = {
                   return h('div', 'Sync Component')
                 }
               })
-            }
+            },
+            valueType: String,
+            defaultValue: '123'
           }
         },
         {

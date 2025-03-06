@@ -8,6 +8,10 @@ export function hasFunction(func: any): func is Function {
     return func && typeof func === 'function'
 }
 
+export function hasObject(obj: any): obj is Object {
+    return obj && typeof obj === 'object'
+}
+
 const replacer = (key: string, value: any) => {
     if (hasFunction(value)) {
         return value.toString()

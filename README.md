@@ -290,7 +290,7 @@ interface MetaKeyConfig {
     /**
      * 默认值类型
      */
-    valueType?: ((value?: any) => string)   // 对应 String
+    valueType: ((value?: any) => string)   // 对应 String
         | ((value?: any) => number)   // 对应 Number
         | ((value?: any) => boolean)  // 对应 Boolean
         | ((value?: any) => any[])    // 对应 Array
@@ -433,7 +433,7 @@ interface MetaKeyConfig {
             /**
              * 默认值类型
              */
-            valueType?: ((value?: any) => string)   // 对应 String
+            valueType: ((value?: any) => string)   // 对应 String
                 | ((value?: any) => number)   // 对应 Number
                 | ((value?: any) => boolean)  // 对应 Boolean
                 | ((value?: any) => any[])    // 对应 Array

@@ -115,13 +115,15 @@ export default function useComponentValidator({context, props}: InternalContext)
     async function processValidate(configList: OmitEdMetaKeyConfigWithField[], changeKeys: {
         [key: string]: boolean
     } | null = null): Promise<boolean> {
-        let list: OmitEdMetaKeyConfigWithField[] = configList
-        if (changeKeys) {
-            list = configList.filter(item => changeKeys[item.field])
-            if (list.some(item => item.validator && !hasFunction(item.validator) && item.validator.scope === TriggerScope.propagation)) {
-                list = configList
-            }
-        }
+        let list: OmitEdMetaKeyConfigWithField[] = configList.filter(item => item.required.value || item.validator)
+        // 仅对required.value=true/validator进行校验
+        // HACK 暂时取消监控字段个数变化
+        // if (changeKeys) {
+        //     list = configList.filter(item => changeKeys[item.field])
+        //     if (list.some(item => item.validator && !hasFunction(item.validator) && item.validator.scope === TriggerScope.propagation)) {
+        //         list = configList
+        //     }
+        // }
 
         const result = await Promise.all(list.map(config => {
                 const {validator, field} = config
