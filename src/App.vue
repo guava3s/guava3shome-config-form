@@ -4,7 +4,7 @@ import {
   type FailCallback,
   type SuccessCallback,
 } from "../lib/typings/runtime-validate.ts";
-import {defineComponent, getCurrentInstance, h} from "vue";
+import {defineComponent, getCurrentInstance, h, onMounted, ref} from "vue";
 
 
 const scopeConfig = {
@@ -177,6 +177,7 @@ const scopeConfig = {
 }
 
 const {proxy} = getCurrentInstance()
+const testValue = ref({})
 
 async function submit() {
   const data = await proxy.$refs.configForm.submit()
@@ -186,7 +187,9 @@ async function submit() {
 
 <template>
   <div style="max-width: 600px">
-    <G3ConfigForm :key-config="scopeConfig.scope1" ref="configForm" :immediate="false">
+    <G3ConfigForm :key-config="scopeConfig.scope1"
+                  :key-data="testValue"
+                  ref="configForm" :immediate="false">
       <template #_FOOTER>
         <button @click="submit">submit</button>
       </template>

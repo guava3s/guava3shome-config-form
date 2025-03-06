@@ -20,8 +20,23 @@ export default function useComponentValidator({context, props}: InternalContext)
 
     // 默认校验: return success?
     function defaultValidate(field: keyForString<MetaConfig>, required: RequiredDescValidator): boolean {
+        if (!required.value) {
+            return true;
+        }
         const fieldValue = context.keyForValues.value[field];
-        return required.value ? !['null', 'undefined', '', '[object Object]'].includes(String(fieldValue)) : true
+        const isInvalid = (value: unknown): boolean => {
+            if (value == null) {
+                return true;
+            }
+            if (typeof value === 'string' && !value.trim()) {
+                return true;
+            }
+            if (typeof value === 'object' && !Array.isArray(value) && !Object.keys(value).length) {
+                return true;
+            }
+            return Array.isArray(value) && !value.length
+        }
+        return !isInvalid(fieldValue);
     }
 
 
@@ -79,7 +94,7 @@ export default function useComponentValidator({context, props}: InternalContext)
                     }
                     kfV.controller?.signal.addEventListener('abort', onAbort);
 
-                    (config.validator as InputValidator)?.validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.component.bind)
+                    (config.validator as InputValidator).validate(deepClone(context.keyForValues.value[config.field]), resolve, reject, config.component.bind)
                 })
                 kfV.success = true
             } catch (e) {
