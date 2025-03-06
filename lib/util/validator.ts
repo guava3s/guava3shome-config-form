@@ -21,7 +21,7 @@ export default function useComponentValidator({context, props}: InternalContext)
     // 默认校验: return success?
     function defaultValidate(field: keyForString<MetaConfig>, required: RequiredDescValidator): boolean {
         if (!required.value) {
-            return true;
+            return true
         }
         const fieldValue = context.keyForValues.value[field];
         const isInvalid = (value: unknown): boolean => {
@@ -36,7 +36,7 @@ export default function useComponentValidator({context, props}: InternalContext)
             }
             return Array.isArray(value) && !value.length
         }
-        return !isInvalid(fieldValue);
+        return !isInvalid(fieldValue)
     }
 
 
