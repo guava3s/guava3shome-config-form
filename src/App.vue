@@ -85,6 +85,13 @@ const scopeConfig = {
       },
       order: 2,
       valueType: String,
+      validator: (value: any, success: SuccessCallback, fail: FailCallback) => {
+        if (/^[0-9]+$/.test(value)) {
+          fail('失败')
+        } else {
+          success()
+        }
+      },
       dependencies: [
         {
           depField: 'name',
@@ -196,12 +203,12 @@ const scopeConfig = {
 }
 
 const {proxy} = getCurrentInstance()
-const testValue = ref({})
+const testValue = ref({password: '123'})
 
 function init() {
   Promise.resolve().then(() => {
     setTimeout(() => {
-      testValue.value = {name: '1', password: null, age: null}
+      Object.assign(testValue.value, {name: '1', age: null})
       console.log('ssss')
     }, 3000)
   })

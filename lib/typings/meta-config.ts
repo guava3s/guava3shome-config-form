@@ -58,4 +58,5 @@ export interface SlaveFieldValueMap {
     slaveValueMap: Record<string, string>[]
 }
 
+export type MetaConfigKeyValues = Record<keyForString<MetaConfig>, any>
 

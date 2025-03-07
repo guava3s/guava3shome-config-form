@@ -4,7 +4,7 @@
       <div v-for="(item,index) in keyConfigList" :key="index" class="g3-config-form-props-wrapper">
 
         <template v-if="item.display">
-          <slot v-if="$slots['TITLE-'+item.field]" :name="'TITLE-'+item.field" :scope="deepClone(item)"></slot>
+          <slot v-if="$slots['TITLE-'+item.field]" :name="'TITLE-'+ item.field" :scope="deepClone(item)"></slot>
           <div v-else class="g3-config-form-props"
                :class="{'g3-config-form-required': item.required.value}">
             <span>{{ item.title }}</span>
@@ -48,7 +48,10 @@ import type {
   keyForString,
   MetaConfig, MetaConfigComponent,
   MetaKeyConfig,
-  OmitEdMetaKeyConfigWithField, OmitEdMetaKeyConfig, PromiseComponent,
+  OmitEdMetaKeyConfigWithField,
+  OmitEdMetaKeyConfig,
+  PromiseComponent,
+  MetaConfigKeyValues
 } from "./typings/meta-config.ts"
 import {checkObjectIdentical, hasFunction, hasObject} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
@@ -57,6 +60,13 @@ import useDataEffect from "./util/data-effect.ts"
 import {G3Context} from "guava3shome-h5-utils"
 import {deepClone} from "guava3shome-h5-utils/dist/object-util"
 import {depConditionMap, type MetaConfigDependency} from "./typings/runtime-dependency.ts";
+import {
+  ABILITY_DATA_EFFECT, ABILITY_RESET_CONFIG,
+  ABILITY_VALIDATE, OPPORTUNITY_BEFORE,
+  OPPORTUNITY_ORDER, OPPORTUNITY_PROCESS,
+  ProcessAbortError,
+  type ProcessDescriptor
+} from "./typings/ability-control.ts";
 
 export default defineComponent({
   props: {
@@ -119,13 +129,14 @@ export default defineComponent({
     const renderComponentMap = ref<Record<keyForString<MetaConfig>, ShallowRef | Component>>({})
     const renderComponentRefs = shallowRef<Record<keyForString<MetaConfig>, MetaConfigComponent>>({})
     // 表单问题答案对象
-    const keyForValues = ref<Record<keyForString<MetaConfig>, any>>({})
+    const keyForValues = ref<MetaConfigKeyValues>({})
     // 上一次表单答案
-    let previousKeyForValues: Record<keyForString<MetaConfig>, any> = {}
+    let previousKeyForValues: MetaConfigKeyValues = {}
     // 备份配置字段依赖对象
     const backupKeyDependencies: Record<keyForString<MetaConfig>, MetaConfigDependency[]> = {}
     // 备份原始配置字段依赖对象
     const backupKeyConfig: Record<keyForString<MetaConfig>, OmitEdMetaKeyConfigWithField> = {}
+    const abilityProcess: ProcessDescriptor[] = []
     // 触发校验锁
     const triggerValidateLock = {
       change: true,
@@ -211,8 +222,82 @@ export default defineComponent({
 
         previousKeyForValues = JSON.parse(JSON.stringify(keyForValues.value))
         // After initialization, verify the items that need to be verified immediately
-        let filter = keyConfigList.value.filter(obj => obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate)
+        const filter = keyConfigList.value.filter(obj => (obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate) || keyForValues.value[obj.field])
         processValidate(filter)
+
+        // -----------------------------------------------------------------------------------
+        abilityProcess.push({
+          order: 1,
+          name: ABILITY_VALIDATE,
+          opportunity: OPPORTUNITY_BEFORE,
+          process: (newValue: MetaConfigKeyValues) => {
+            const changeKeys: { [key: string]: boolean } = {}
+            for (const key in newValue) {
+              if (newValue[key] !== previousKeyForValues[key]) {
+                changeKeys[key] = true
+              }
+            }
+            previousKeyForValues = JSON.parse(JSON.stringify(newValue))
+            return {
+              changeKeys,
+              validatePermission: !Object.values(triggerValidateLock).includes(false)
+            }
+          }
+        })
+
+
+        abilityProcess.push({
+          order: 1,
+          name: ABILITY_RESET_CONFIG,
+          opportunity: OPPORTUNITY_PROCESS,
+          process: () => {
+            let hasChange = false
+            const reduceList = keyConfigList.value.map(item => {
+              let changeInfo = triggerReset(item)
+              hasChange ||= changeInfo.change
+              return changeInfo.data
+            })
+
+            if (hasChange) {
+              keyConfigList.value = reduceList
+            }
+          }
+        })
+
+        abilityProcess.push({
+          order: 2,
+          name: ABILITY_VALIDATE,
+          opportunity: OPPORTUNITY_PROCESS,
+          process: (newValue, previousRes) => {
+            if (previousRes?.validatePermission) {
+              processValidate(keyConfigList.value, previousRes.changeKeys)
+              throw new ProcessAbortError()
+            }
+            triggerValidateLock.keyData = true
+          }
+        })
+
+        abilityProcess.push({
+          order: 3,
+          name: ABILITY_DATA_EFFECT,
+          opportunity: OPPORTUNITY_PROCESS,
+          process: () => {
+            nextTick(() => {
+              if (disableEffect.value.includes(true)) {
+                disableEffect.value.length = 0
+                throw new ProcessAbortError()
+              }
+              triggerDataEffect(keyConfigList.value.map(item => item.field))
+            })
+          }
+        })
+
+        // 定义排序权重映射
+        abilityProcess.sort((a, b) => {
+          const stageDiff = OPPORTUNITY_ORDER[a.opportunity] - OPPORTUNITY_ORDER[b.opportunity]
+          if (stageDiff !== 0) return stageDiff
+          return a.order - b.order
+        })
       }
     }, {immediate: true, deep: true, once: true})
 
@@ -224,39 +309,20 @@ export default defineComponent({
 
     // core 监听表单输入值
     watch(keyForValues, (newValue) => {
-
-      const changeKeys: { [key: string]: boolean } = {}
-      for (const key in newValue) {
-        if (newValue[key] !== previousKeyForValues[key]) {
-          changeKeys[key] = true
+      const processResult = {}
+      for (const item of abilityProcess) {
+        try {
+          processResult[item.name] = item.process(newValue, processResult[item.name])
+        } catch (e) {
+          console.log('error=', e)
+          if (e instanceof ProcessAbortError) {
+            return
+          } else {
+            throw e
+          }
         }
+        console.log('processResult[item.name]=', item.name, processResult[item.name])
       }
-      previousKeyForValues = JSON.parse(JSON.stringify(newValue))
-
-      let hasChange = false
-
-      const reduceList = keyConfigList.value.map(item => {
-        let changeInfo = triggerReset(item)
-        hasChange ||= changeInfo.change
-        return changeInfo.data
-      })
-
-      if (hasChange) {
-        keyConfigList.value = reduceList
-      }
-
-      nextTick(() => {
-        if (disableEffect.value.includes(true)) {
-          disableEffect.value.length = 0
-          return
-        }
-        triggerDataEffect(keyConfigList.value.map(item => item.field))
-      })
-
-      if (!Object.values(triggerValidateLock).includes(false)) {
-        processValidate(keyConfigList.value, changeKeys)
-      }
-      triggerValidateLock.keyData = true
 
     }, {deep: true})
 
