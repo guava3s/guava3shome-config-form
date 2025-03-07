@@ -120,11 +120,17 @@ export default defineComponent({
     const renderComponentRefs = shallowRef<Record<keyForString<MetaConfig>, MetaConfigComponent>>({})
     // 表单问题答案对象
     const keyForValues = ref<Record<keyForString<MetaConfig>, any>>({})
-    // 配置字段依赖对象
+    // 上一次表单答案
+    let previousKeyForValues: Record<keyForString<MetaConfig>, any> = {}
+    // 备份配置字段依赖对象
     const backupKeyDependencies: Record<keyForString<MetaConfig>, MetaConfigDependency[]> = {}
-    // 原始配置字段依赖对象
+    // 备份原始配置字段依赖对象
     const backupKeyConfig: Record<keyForString<MetaConfig>, OmitEdMetaKeyConfigWithField> = {}
-
+    // 触发校验锁
+    const triggerValidateLock = {
+      change: true,
+      keyData: true
+    }
     ctx.addContextProps({
       keyConfigList,
       renderComponentMap,
@@ -182,9 +188,9 @@ export default defineComponent({
     }
 
     // init
-    watch(props, (newValue) => {
-      if (newValue.keyConfig) {
-        const scopeElement: MetaConfig = newValue.keyConfig
+    watch(() => props.keyConfig, (newValue) => {
+      if (newValue) {
+        const scopeElement: MetaConfig = newValue
 
         keyConfigList.value = Object.entries(scopeElement)
             .map(([field, config]) => {
@@ -203,19 +209,27 @@ export default defineComponent({
             // dependency search, 替换对应元数据
             .map(item => triggerReset(item as OmitEdMetaKeyConfigWithField).data)
 
+        previousKeyForValues = JSON.parse(JSON.stringify(keyForValues.value))
         // After initialization, verify the items that need to be verified immediately
-        processValidate(keyConfigList.value.filter(obj => obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate))
+        let filter = keyConfigList.value.filter(obj => obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate)
+        processValidate(filter)
       }
-    }, {immediate: true, deep: true})
+    }, {immediate: true, deep: true, once: true})
+
+    watch([() => props.keyData, () => props.keyDataEffect], (value) => {
+      keyConfigList.value.forEach((item) => fillValue(item.field, item))
+      triggerValidateLock.keyData = false
+    }, {deep: true, once: true})
 
 
-    let previousKeyForValues = JSON.parse(JSON.stringify(keyForValues.value))
     // core 监听表单输入值
     watch(keyForValues, (newValue) => {
 
       const changeKeys: { [key: string]: boolean } = {}
       for (const key in newValue) {
-        changeKeys[key] = newValue[key] !== previousKeyForValues[key]
+        if (newValue[key] !== previousKeyForValues[key]) {
+          changeKeys[key] = true
+        }
       }
       previousKeyForValues = JSON.parse(JSON.stringify(newValue))
 
@@ -239,7 +253,10 @@ export default defineComponent({
         triggerDataEffect(keyConfigList.value.map(item => item.field))
       })
 
-      processValidate(keyConfigList.value, changeKeys)
+      if (!Object.values(triggerValidateLock).includes(false)) {
+        processValidate(keyConfigList.value, changeKeys)
+      }
+      triggerValidateLock.keyData = true
 
     }, {deep: true})
 

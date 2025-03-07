@@ -51,6 +51,22 @@ const scopeConfig = {
         }
       },
     },
+    age: {
+      title: 'Role Age',
+      display: true,
+      required: {
+        value: true,
+        message: "Please input role age."
+      },
+      component: {
+        body: () => import('../lib/component/G3Input.vue'),
+        bind: {
+          type: 'number',
+          placeholder: 'age',
+        }
+      },
+      valueType: Number
+    },
     password: {
       title: 'Test2',
       display: true,
@@ -182,6 +198,25 @@ const scopeConfig = {
 const {proxy} = getCurrentInstance()
 const testValue = ref({})
 
+function init() {
+  Promise.resolve().then(() => {
+    setTimeout(() => {
+      testValue.value = {name: '1', password: null, age: null}
+      console.log('ssss')
+    }, 3000)
+  })
+}
+
+init()
+
+onMounted(() => {
+  // init()
+})
+
+function click() {
+  testValue.value.age = 1
+}
+
 async function submit() {
   const data = await proxy.$refs.configForm.submit()
   console.log('data=', data)
@@ -192,11 +227,13 @@ async function submit() {
   <div style="max-width: 600px">
     <G3ConfigForm :key-config="scopeConfig.scope1"
                   :key-data="testValue"
-                  ref="configForm" :immediate="false">
+                  ref="configForm"
+                  :immediate="false">
       <template #_FOOTER>
         <button @click="submit">submit</button>
       </template>
     </G3ConfigForm>
+    <button @click="click">+1</button>
   </div>
 </template>
 

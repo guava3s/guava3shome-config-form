@@ -11,6 +11,15 @@ import {deepClone} from "guava3shome-h5-utils/dist/object-util";
 import {hasFunction} from "./type-check.ts";
 import {errorDisplayRequired} from "../typings/runtime-error.ts";
 
+/*
+校验原则：
+    初始化时：
+    初始化有值，必校验，无论immediate是为true；
+    初始化无值，根据required为true或者validator是否存在，由immediate决定是否校验；
+
+    校验时：
+    前提仅对required为true或validator存在的配置项进行校验，可以控制范围；若是validator.scope为propagation，则全部校验；反之仅校验值变化的配置项
+ */
 const empty_prompt: string = 'The field value cannot be empty.'
 
 export default function useComponentValidator({context, props}: InternalContext) {
@@ -111,19 +120,27 @@ export default function useComponentValidator({context, props}: InternalContext)
         return kfV.success
     }
 
+    // 校验前过滤
+    function processValidateFilter(configList: OmitEdMetaKeyConfigWithField[], changeKeys: {
+        [key: string]: boolean
+    } | null = null) {
+        let list: OmitEdMetaKeyConfigWithField[] = configList.filter(item => (item.required.value || item.validator))
+        // 仅对required.value=true/validator进行校验
+        // 存在validator.scope为propagation，默认对所有
+        if (list.some(item => item.validator && !hasFunction(item.validator) && item.validator.scope === TriggerScope.propagation)) {
+            list = configList
+        } else if (changeKeys) {
+            const keys = Object.keys(changeKeys)
+            list = list.filter(item => keys.includes(item.field))
+        }
+        return list
+    }
+
     // 执行change校验
     async function processValidate(configList: OmitEdMetaKeyConfigWithField[], changeKeys: {
         [key: string]: boolean
     } | null = null): Promise<boolean> {
-        let list: OmitEdMetaKeyConfigWithField[] = configList.filter(item => item.required.value || item.validator)
-        // 仅对required.value=true/validator进行校验
-        // HACK 暂时取消监控字段个数变化
-        // if (changeKeys) {
-        //     list = configList.filter(item => changeKeys[item.field])
-        //     if (list.some(item => item.validator && !hasFunction(item.validator) && item.validator.scope === TriggerScope.propagation)) {
-        //         list = configList
-        //     }
-        // }
+        const list: OmitEdMetaKeyConfigWithField[] = processValidateFilter(configList, changeKeys)
 
         const result = await Promise.all(list.map(config => {
                 const {validator, field} = config
