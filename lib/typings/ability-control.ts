@@ -32,8 +32,8 @@ export const OPPORTUNITY_ORDER = {
 } as const
 
 export class ProcessAbortError extends Error {
-    constructor(message) {
-        super(message);
+    constructor(message: string) {
+        super(message)
         this.name = "ProcessAbortError"
     }
 }

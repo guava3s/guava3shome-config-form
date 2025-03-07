@@ -268,10 +268,10 @@ export default defineComponent({
           order: 2,
           name: ABILITY_VALIDATE,
           opportunity: OPPORTUNITY_PROCESS,
-          process: (newValue, previousRes) => {
+          process: (newValue: MetaConfigKeyValues, previousRes: any) => {
             if (previousRes?.validatePermission) {
               processValidate(keyConfigList.value, previousRes.changeKeys)
-              throw new ProcessAbortError()
+              throw new ProcessAbortError("")
             }
             triggerValidateLock.keyData = true
           }
@@ -285,7 +285,7 @@ export default defineComponent({
             nextTick(() => {
               if (disableEffect.value.includes(true)) {
                 disableEffect.value.length = 0
-                throw new ProcessAbortError()
+                throw new ProcessAbortError("")
               }
               triggerDataEffect(keyConfigList.value.map(item => item.field))
             })
@@ -309,7 +309,7 @@ export default defineComponent({
 
     // core 监听表单输入值
     watch(keyForValues, (newValue) => {
-      const processResult = {}
+      const processResult: { [key: string]: any } = {}
       for (const item of abilityProcess) {
         try {
           processResult[item.name] = item.process(newValue, processResult[item.name])
@@ -321,7 +321,6 @@ export default defineComponent({
             throw e
           }
         }
-        console.log('processResult[item.name]=', item.name, processResult[item.name])
       }
 
     }, {deep: true})
