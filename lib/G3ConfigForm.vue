@@ -67,6 +67,7 @@ import {
   ProcessAbortError,
   type ProcessDescriptor
 } from "./typings/ability-control.ts";
+import type {ProcessValidatePermission} from "./typings/runtime-validate.ts";
 
 export default defineComponent({
   props: {
@@ -130,18 +131,12 @@ export default defineComponent({
     const renderComponentRefs = shallowRef<Record<keyForString<MetaConfig>, MetaConfigComponent>>({})
     // 表单问题答案对象
     const keyForValues = ref<MetaConfigKeyValues>({})
-    // 上一次表单答案
-    let previousKeyForValues: MetaConfigKeyValues = {}
     // 备份配置字段依赖对象
     const backupKeyDependencies: Record<keyForString<MetaConfig>, MetaConfigDependency[]> = {}
     // 备份原始配置字段依赖对象
     const backupKeyConfig: Record<keyForString<MetaConfig>, OmitEdMetaKeyConfigWithField> = {}
     const abilityProcess: ProcessDescriptor[] = []
     // 触发校验锁
-    const triggerValidateLock = {
-      change: true,
-      keyData: true
-    }
     ctx.addContextProps({
       keyConfigList,
       renderComponentMap,
@@ -150,7 +145,13 @@ export default defineComponent({
       backupKeyConfig,
     })
 
-    const {keyForValidate, fillValidate, processValidate} = ctx.add(useComponentValidator)
+    const {
+      keyForValidate,
+      fillValidate,
+      processValidate,
+      triggerValidatePermission,
+      previousKeyForValues
+    } = ctx.add(useComponentValidator)
     const {disableEffect, triggerDataEffect} = ctx.add(useDataEffect)
 
     function fillValue(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig): void {
@@ -220,36 +221,34 @@ export default defineComponent({
             // dependency search, 替换对应元数据
             .map(item => triggerReset(item as OmitEdMetaKeyConfigWithField).data)
 
-        previousKeyForValues = JSON.parse(JSON.stringify(keyForValues.value))
+        Object.assign(previousKeyForValues, JSON.parse(JSON.stringify(keyForValues.value)))
         // After initialization, verify the items that need to be verified immediately
-        const filter = keyConfigList.value.filter(obj => (obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate) || keyForValues.value[obj.field])
+        const filter = keyConfigList.value.filter(obj => {
+          const forImmediate = obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate
+          const hasValue = keyForValues.value[obj.field] && (obj.required.value || obj.validator)
+          return forImmediate || hasValue
+        })
         processValidate(filter)
 
         // -----------------------------------------------------------------------------------
         abilityProcess.push({
-          order: 1,
-          name: ABILITY_VALIDATE,
           opportunity: OPPORTUNITY_BEFORE,
+          name: ABILITY_VALIDATE,
+          order: 1,
           process: (newValue: MetaConfigKeyValues) => {
-            const changeKeys: { [key: string]: boolean } = {}
-            for (const key in newValue) {
-              if (newValue[key] !== previousKeyForValues[key]) {
-                changeKeys[key] = true
-              }
-            }
-            previousKeyForValues = JSON.parse(JSON.stringify(newValue))
+            const {result: changeRes, attach} = triggerValidatePermission.forValueChange(newValue)
+            Object.assign(previousKeyForValues, JSON.parse(JSON.stringify(newValue)))
             return {
-              changeKeys,
-              validatePermission: !Object.values(triggerValidateLock).includes(false)
+              changeKeys: attach,
+              validatePermission: changeRes
             }
           }
         })
 
-
         abilityProcess.push({
-          order: 1,
-          name: ABILITY_RESET_CONFIG,
           opportunity: OPPORTUNITY_PROCESS,
+          name: ABILITY_RESET_CONFIG,
+          order: 1,
           process: () => {
             let hasChange = false
             const reduceList = keyConfigList.value.map(item => {
@@ -265,21 +264,20 @@ export default defineComponent({
         })
 
         abilityProcess.push({
-          order: 2,
-          name: ABILITY_VALIDATE,
           opportunity: OPPORTUNITY_PROCESS,
+          name: ABILITY_VALIDATE,
+          order: 2,
           process: (newValue: MetaConfigKeyValues, previousRes: any) => {
             if (previousRes?.validatePermission) {
               processValidate(keyConfigList.value, previousRes.changeKeys)
             }
-            triggerValidateLock.keyData = true
           }
         })
 
         abilityProcess.push({
-          order: 3,
-          name: ABILITY_DATA_EFFECT,
           opportunity: OPPORTUNITY_PROCESS,
+          name: ABILITY_DATA_EFFECT,
+          order: 3,
           process: () => {
             nextTick(() => {
               if (disableEffect.value.includes(true)) {
@@ -302,7 +300,6 @@ export default defineComponent({
 
     watch([() => props.keyData, () => props.keyDataEffect], () => {
       keyConfigList.value.forEach((item) => fillValue(item.field, item))
-      triggerValidateLock.keyData = false
     }, {deep: true, once: true})
 
 
@@ -313,8 +310,8 @@ export default defineComponent({
         try {
           processResult[item.name] = item.process(newValue, processResult[item.name])
         } catch (e) {
-          console.log('error=', e)
           if (e instanceof ProcessAbortError) {
+            console.log('process abort...')
             return
           } else {
             throw e

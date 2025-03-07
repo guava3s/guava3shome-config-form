@@ -1,7 +1,13 @@
 import {ref} from "vue";
-import type {keyForString, MetaConfig, MetaKeyConfig, OmitEdMetaKeyConfigWithField} from "../typings/meta-config.ts";
 import type {
-    InputValidator,
+    keyForString,
+    MetaConfig,
+    MetaConfigKeyValues,
+    MetaKeyConfig,
+    OmitEdMetaKeyConfigWithField
+} from "../typings/meta-config.ts";
+import type {
+    InputValidator, ProcessValidatePermission,
     RequiredDescValidator,
     ValidateResultParams
 } from "../typings/runtime-validate.ts";
@@ -24,8 +30,26 @@ const empty_prompt: string = 'The field value cannot be empty.'
 
 export default function useComponentValidator({context, props}: InternalContext) {
 
+    // key对应校验结果信息
     const keyForValidate = ref<Record<keyForString<MetaConfig>, ValidateResultParams>>({})
     const keyForTimer: Record<keyForString<MetaConfig>, number> = {}
+    // 上一次表单答案
+    const previousKeyForValues: MetaConfigKeyValues = {}
+    // 是否触发表单校验依据
+    const triggerValidatePermission = {
+        forValueChange: (newKeyValues: MetaConfigKeyValues): ProcessValidatePermission => {
+            const changeKeys: { [key: string]: boolean } = {}
+            for (const key in newKeyValues) {
+                if (newKeyValues[key] !== previousKeyForValues[key]) {
+                    changeKeys[key] = true
+                }
+            }
+            return {
+                result: Object.values(changeKeys).includes(true),
+                attach: changeKeys
+            }
+        }
+    }
 
     // 默认校验: return success?
     function defaultValidate(field: keyForString<MetaConfig>, required: RequiredDescValidator): boolean {
@@ -167,6 +191,8 @@ export default function useComponentValidator({context, props}: InternalContext)
     return {
         keyForValidate,
         fillValidate,
-        processValidate
+        processValidate,
+        previousKeyForValues,
+        triggerValidatePermission
     }
 }

@@ -42,3 +42,8 @@ export interface InputValidator {
     immediate?: boolean
     scope?: TriggerScope
 }
+
+export interface ProcessValidatePermission {
+    result: boolean
+    attach?: any
+}
