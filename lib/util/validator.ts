@@ -14,7 +14,7 @@ import type {
 import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
 import {deepClone} from "guava3shome-h5-utils/dist/object-util";
-import {hasFunction} from "./type-check.ts";
+import {baseIsEmpty, hasFunction} from "./type-check.ts";
 import {errorDisplayRequired} from "../typings/runtime-error.ts";
 
 /*
@@ -40,7 +40,8 @@ export default function useComponentValidator({context, props}: InternalContext)
         forValueChange: (newKeyValues: MetaConfigKeyValues): ProcessValidatePermission => {
             const changeKeys: { [key: string]: boolean } = {}
             for (const key in newKeyValues) {
-                if (newKeyValues[key] !== previousKeyForValues[key]) {
+                const equals = newKeyValues[key] !== previousKeyForValues[key]
+                if (equals && !(baseIsEmpty(newKeyValues[key]) && baseIsEmpty(previousKeyForValues[key]))) {
                     changeKeys[key] = true
                 }
             }

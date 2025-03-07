@@ -32,6 +32,7 @@ const scopeConfig = {
       },
       order: 1,
       valueType: String,
+      defaultValue: undefined,
       validator: async (value: string, success: SuccessCallback, fail: FailCallback) => {
         if (value.length > 100) {
           fail('The username length should not exceed 10.')
@@ -208,7 +209,7 @@ const testValue = ref({password: '123'})
 function init() {
   Promise.resolve().then(() => {
     setTimeout(() => {
-      Object.assign(testValue.value, {name: '1', age: null})
+      Object.assign(testValue.value, {name: [], age: null})
       console.log('ssss')
     }, 3000)
   })

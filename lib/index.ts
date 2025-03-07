@@ -7,7 +7,7 @@ const install = function(app: App) {
 }
 
 export const globalConfigForm: configFormGlobal = {
-    version: '0.4.2',
+    version: '0.4.3',
     install,
     G3ConfigForm,
 }

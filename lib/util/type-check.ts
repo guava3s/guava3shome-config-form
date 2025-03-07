@@ -49,3 +49,25 @@ export function checkObjectIdentical(source: object, target: object): boolean {
 
     return customStringify(source) === customStringify(target);
 }
+
+type EmptyValue = 0 | undefined | null | '' | [] | Record<string, never>
+
+export function baseIsEmpty(value: unknown): value is EmptyValue {
+    if (value === 0 || value === undefined || value === null) {
+        return true
+    }
+
+    if (typeof value === 'string' && value.trim() === '') {
+        return true
+    }
+
+    if (Array.isArray(value) && value.length === 0) {
+        return true
+    }
+
+    if (typeof value === 'object') {
+        return Object.keys(value).length === 0
+    }
+
+    return false;
+}
