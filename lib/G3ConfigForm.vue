@@ -204,7 +204,7 @@ export default defineComponent({
         const scopeElement: MetaConfig = newValue
 
         keyConfigList.value = Object.entries(scopeElement)
-            .map(([field, config]) => {
+            .map(([field, config]): OmitEdMetaKeyConfigWithField | false => {
               const configCopy = deepClone(config)
               fillValue(field, configCopy)
               if (config.fixed) {
@@ -215,7 +215,7 @@ export default defineComponent({
               fillComponent(field, configCopy)
               return fillDependencies(field, configCopy)
             })
-            .filter(item => item)
+            .filter((item) => item)
             .sort((v1, v2) => (v1 as OmitEdMetaKeyConfigWithField).order - (v2 as OmitEdMetaKeyConfigWithField).order)
             // dependency search, 替换对应元数据
             .map(item => triggerReset(item as OmitEdMetaKeyConfigWithField).data)
@@ -271,7 +271,6 @@ export default defineComponent({
           process: (newValue: MetaConfigKeyValues, previousRes: any) => {
             if (previousRes?.validatePermission) {
               processValidate(keyConfigList.value, previousRes.changeKeys)
-              throw new ProcessAbortError("")
             }
             triggerValidateLock.keyData = true
           }
@@ -301,7 +300,7 @@ export default defineComponent({
       }
     }, {immediate: true, deep: true, once: true})
 
-    watch([() => props.keyData, () => props.keyDataEffect], (value) => {
+    watch([() => props.keyData, () => props.keyDataEffect], () => {
       keyConfigList.value.forEach((item) => fillValue(item.field, item))
       triggerValidateLock.keyData = false
     }, {deep: true, once: true})
