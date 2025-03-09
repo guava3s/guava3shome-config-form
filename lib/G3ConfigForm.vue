@@ -53,7 +53,7 @@ import type {
   PromiseComponent,
   MetaConfigKeyValues
 } from "./typings/meta-config.ts"
-import {checkObjectIdentical, hasFunction, hasObject} from "./util/type-check.ts"
+import {baseIsEmpty, checkObjectIdentical, hasFunction, hasObject} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
 import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
@@ -233,7 +233,7 @@ export default defineComponent({
         }
         // After initialization, verify the items that need to be verified immediately
         const filter = keyConfigList.value.filter(obj => {
-          return (keyForValues.value[obj.field] && (obj.required.value || obj.validator)) ||
+          return (keyForValues.value[obj.field] && !baseIsEmpty(keyForValues.value[obj.field]) && (obj.required.value || obj.validator)) ||
               (obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate)
         })
         processValidate(filter)
