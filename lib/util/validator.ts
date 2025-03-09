@@ -41,6 +41,13 @@ export default function useComponentValidator({context, props}: InternalContext)
             const changeKeys: { [key: string]: boolean } = {}
             for (const key in newKeyValues) {
                 const equals = newKeyValues[key] !== previousKeyForValues[key]
+                if (props.debug) {
+                    console.log('for value change: newKeyValues=', JSON.parse(JSON.stringify(newKeyValues[key])))
+                    console.log('for value change: previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues[key])))
+                    console.log('for Value change: equals=', equals)
+                    console.log('for value change: newKeyValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
+                    console.log('for value change: previousKeyForValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
+                }
                 if (equals && !(baseIsEmpty(newKeyValues[key]) && baseIsEmpty(previousKeyForValues[key]))) {
                     changeKeys[key] = true
                 }

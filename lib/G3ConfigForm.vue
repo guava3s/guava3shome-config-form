@@ -67,7 +67,6 @@ import {
   ProcessAbortError,
   type ProcessDescriptor
 } from "./typings/ability-control.ts";
-import type {ProcessValidatePermission} from "./typings/runtime-validate.ts";
 
 export default defineComponent({
   props: {
@@ -118,6 +117,11 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: true
+    },
+    debug: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   emits: ['submit'],
@@ -222,11 +226,15 @@ export default defineComponent({
             .map(item => triggerReset(item as OmitEdMetaKeyConfigWithField).data)
 
         Object.assign(previousKeyForValues, JSON.parse(JSON.stringify(keyForValues.value)))
+        if (props.debug) {
+          console.log('init previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues)))
+          console.log('init keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
+          console.log('init keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
+        }
         // After initialization, verify the items that need to be verified immediately
         const filter = keyConfigList.value.filter(obj => {
-          const forImmediate = obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate
-          const hasValue = keyForValues.value[obj.field] && (obj.required.value || obj.validator)
-          return forImmediate || hasValue
+          return (keyForValues.value[obj.field] && (obj.required.value || obj.validator)) ||
+              (obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate)
         })
         processValidate(filter)
 
@@ -299,7 +307,13 @@ export default defineComponent({
     }, {immediate: true, deep: true, once: true})
 
     watch([() => props.keyData, () => props.keyDataEffect], () => {
+      if (props.debug) {
+        console.log('update key data: keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
+      }
       keyConfigList.value.forEach((item) => fillValue(item.field, item))
+      if (props.debug) {
+        console.log('update key data after: keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
+      }
     }, {deep: true, once: true})
 
 
