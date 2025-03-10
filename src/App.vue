@@ -5,6 +5,7 @@ import {
   type SuccessCallback,
 } from "../lib/typings/runtime-validate.ts";
 import {defineComponent, getCurrentInstance, h, onMounted, ref} from "vue";
+import type {DepValues} from "../lib/typings/runtime-dependency.ts";
 
 
 const scopeConfig = {
@@ -32,7 +33,6 @@ const scopeConfig = {
       },
       order: 1,
       valueType: String,
-      defaultValue: undefined,
       validator: async (value: string, success: SuccessCallback, fail: FailCallback) => {
         if (value.length > 100) {
           fail('The username length should not exceed 10.')
@@ -97,9 +97,21 @@ const scopeConfig = {
         {
           depField: 'name',
           depValues: [
-            'sss',
+            'sbs1',
           ],
-          depCondition: 'some',
+          // depCondition: 'some',
+          depCondition: (value: any, values: string[]) => {
+            console.log('value=', value)
+            if (!value.trim()) {
+              return false
+            }
+            for (const v of values) {
+              if (v.includes(value)) {
+                return true
+              }
+            }
+            return false
+          },
           priority: 1,
           reset: {
             display: true,
@@ -209,7 +221,7 @@ const testValue = ref({password: '123'})
 function init() {
   Promise.resolve().then(() => {
     setTimeout(() => {
-      Object.assign(testValue.value, {name: [], age: null})
+      Object.assign(testValue.value, {name: '', age: null})
       console.log('ssss')
     }, 3000)
   })
@@ -235,6 +247,7 @@ async function submit() {
   <div style="max-width: 600px">
     <G3ConfigForm :key-config="scopeConfig.scope1"
                   :key-data="testValue"
+                  debug
                   ref="configForm"
                   :immediate="false">
       <template #_FOOTER>

@@ -139,8 +139,8 @@ export default defineComponent({
     const backupKeyDependencies: Record<keyForString<MetaConfig>, MetaConfigDependency[]> = {}
     // 备份原始配置字段依赖对象
     const backupKeyConfig: Record<keyForString<MetaConfig>, OmitEdMetaKeyConfigWithField> = {}
+    // 功能执行集合
     const abilityProcess: ProcessDescriptor[] = []
-    // 触发校验锁
     ctx.addContextProps({
       keyConfigList,
       renderComponentMap,
@@ -165,7 +165,7 @@ export default defineComponent({
       const defaultValue = config.defaultValue
       // 0 false
       const isArrayObject = (value: any) => Array.isArray(value) || hasObject(value)
-      const passList = [0, false];
+      const passList = [0, false]
       if (propsKeyData || passList.includes(propsKeyData)) {
         keyForValues.value[field] = isArrayObject(propsKeyData) ? propsKeyData : config.valueType(propsKeyData)
       } else if (defaultValue || passList.includes(defaultValue)) {
@@ -347,7 +347,14 @@ export default defineComponent({
         for (const dep of fieldDependencyList) {
           const findValue = keyForValues.value[dep.depField]
 
-          if (depConditionMap[dep.depCondition](dep.depValues, findValue)) {
+          let forCondition = false
+          if (hasFunction(dep.depCondition)) {
+            forCondition = dep.depCondition(findValue, dep.depValues)
+          } else {
+            forCondition = depConditionMap[dep.depCondition](findValue, dep.depValues)
+          }
+
+          if (forCondition) {
             result.change = true
             Object.assign(result.data, dep.reset)
             // 清空不显示key的value

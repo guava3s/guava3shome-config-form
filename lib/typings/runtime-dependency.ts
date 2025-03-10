@@ -5,7 +5,7 @@ export type MetaDependencyCondition = 'some' | 'not_in' | 'all'
 
 export interface MetaConfigDependency {
     depField: keyof MetaConfig
-    depCondition: MetaDependencyCondition
+    depCondition: MetaDependencyCondition | ((target: any, values: DepValues) => boolean)
     depValues: DepValues
     priority: number
     reset: OmitEdMetaKeyConfig
@@ -13,9 +13,9 @@ export interface MetaConfigDependency {
 
 
 export const depConditionMap = {
-    'some': (values: DepValues, target: any): boolean => values.includes(target),
-    'not_in': (values: DepValues, target: any): boolean => !values.includes(target),
-    'all': (values: DepValues, target: any): boolean => {
+    'some': (target: any, values: DepValues): boolean => values.includes(target),
+    'not_in': (target: any, values: DepValues): boolean => !values.includes(target),
+    'all': (target: any, values: DepValues): boolean => {
         let arr = target
         if (!Array.isArray(target)) {
             arr = [target]
