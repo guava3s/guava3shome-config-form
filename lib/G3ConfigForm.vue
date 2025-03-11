@@ -64,9 +64,9 @@ import {
   ABILITY_DATA_EFFECT, ABILITY_RESET_CONFIG,
   ABILITY_VALIDATE, OPPORTUNITY_BEFORE,
   OPPORTUNITY_ORDER, OPPORTUNITY_PROCESS,
-  ProcessAbortError,
   type ProcessDescriptor
 } from "./typings/ability-control.ts";
+import {errorDisplayRequired, ProcessAbortError} from "./typings/runtime-error.ts";
 
 export default defineComponent({
   props: {
@@ -363,6 +363,7 @@ export default defineComponent({
               fillValidate(oldKeyConfig.field, result.data)
               fillOptions(oldKeyConfig.field, result.data)
             } else {
+              errorDisplayRequired(oldKeyConfig.field, result.data)
               keyForValues.value[oldKeyConfig.field] = ''
             }
             break

@@ -88,7 +88,7 @@ export default function useComponentValidator({context, props}: InternalContext)
     // required 与 validator 相互独立，required < validator
     function fillValidate(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
         config.required.value ??= true
-        errorDisplayRequired(field, config.display, config.required.value)
+        errorDisplayRequired(field, config)
         config.required.immediate ??= props.immediate
         if (config.required.value) {
             config.required.message ??= empty_prompt
