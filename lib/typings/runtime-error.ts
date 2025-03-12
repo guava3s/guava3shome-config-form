@@ -1,11 +1,13 @@
 import type {RequiredDescValidator} from "./runtime-validate.ts";
+import {baseIsEmpty} from "../util/type-check.ts";
 
 export function errorDisplayRequired<T extends {
     display: boolean,
     required: RequiredDescValidator
+    defaultValue?: any
 }>(field: string, config: T): void {
-    if (!config.display && config.required.value) {
-        throw new ConfigRationalityError(`The 'display' and 'required' definitions for the '${field}' field may not be meaningful, so if necessary, use 'fixed: true' configuration.`)
+    if (!config.display && config.required.value && baseIsEmpty(config.defaultValue)) {
+        throw new ConfigRationalityError(`When the 'display' field of '${field}' is true and 'required.value' is false, 'defaultValue' must have a value; Therefore, if necessary, please use 'fixed: true' configuration.`)
     }
 }
 
