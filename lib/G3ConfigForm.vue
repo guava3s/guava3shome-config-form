@@ -237,9 +237,9 @@ export default defineComponent({
 
         Object.assign(previousKeyForValues, JSON.parse(JSON.stringify(keyForValues.value)))
         if (props.debug) {
-          console.log('init previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues)))
-          console.log('init keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
-          console.log('init keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
+          console.debug('[debug] init previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues)))
+          console.debug('[debug] init keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
+          console.debug('[debug] init keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
         }
         // After initialization, verify the items that need to be verified immediately
         const filter = keyConfigList.value.filter(obj => {
@@ -318,11 +318,11 @@ export default defineComponent({
 
     watch([() => props.keyData, () => props.keyDataEffect], () => {
       if (props.debug) {
-        console.log('update key data: keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
+        console.debug('[debug] update key data: keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
       }
       keyConfigList.value.forEach((item) => fillValue(item.field, item))
       if (props.debug) {
-        console.log('update key data after: keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
+        console.debug('[debug] update key data after: keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
       }
     }, {deep: true, once: true})
 
@@ -371,7 +371,7 @@ export default defineComponent({
             }
             Object.assign(result.data, dep.reset)
             if (props.debug) {
-              console.log('\nAfter dependencies config=', deepClone(result.data))
+              console.debug('\n[debug] After dependencies config=', deepClone(result.data))
             }
             // 清空不显示key的value
             if (result.data.display) {

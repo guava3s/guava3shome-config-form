@@ -42,19 +42,19 @@ export default function useComponentValidator({context, props}: InternalContext)
             for (const key in newKeyValues) {
                 const equals = newKeyValues[key] !== previousKeyForValues[key]
                 if (props.debug) {
-                    console.log('\nfor value change: key=', key)
-                    console.log('for value change: newKeyValues=', JSON.parse(JSON.stringify(newKeyValues[key])))
-                    console.log('for value change: previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues[key])))
-                    console.log('for Value change: equals=', equals)
-                    console.log('for value change: newKeyValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
-                    console.log('for value change: previousKeyForValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
+                    console.debug('\n[debug] for value change: key=', key)
+                    console.debug('[debug] for value change: newKeyValues=', deepClone(newKeyValues[key]))
+                    console.debug('[debug] for value change: previousKeyForValues=', deepClone(previousKeyForValues[key]))
+                    console.debug('[debug] for Value change: equals=', equals)
+                    console.debug('[debug] for value change: newKeyValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
+                    console.debug('[debug] for value change: previousKeyForValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
                 }
                 if (equals && !(baseIsEmpty(newKeyValues[key]) && baseIsEmpty(previousKeyForValues[key]))) {
                     changeKeys[key] = true
                 }
             }
             if (props.debug) {
-                console.log('for value change:final changeKeys=', JSON.parse(JSON.stringify(changeKeys)))
+                console.debug('for value change:final changeKeys=', JSON.parse(JSON.stringify(changeKeys)))
             }
             return {
                 result: Object.values(changeKeys).includes(true),
@@ -178,13 +178,13 @@ export default function useComponentValidator({context, props}: InternalContext)
     } | null = null): Promise<boolean> {
 
         if (props.debug) {
-            console.log('processValidate: receive config List=', JSON.parse(JSON.stringify(configList)))
+            console.debug('processValidate: receive config List=', JSON.parse(JSON.stringify(configList)))
         }
 
         const list: OmitEdMetaKeyConfigWithField[] = processValidateFilter(configList, changeKeys)
 
         if (props.debug) {
-            console.log('processValidate: start config List=', JSON.parse(JSON.stringify(list)))
+            console.debug('processValidate: start config List=', JSON.parse(JSON.stringify(list)))
         }
 
         const result = await Promise.all(list.map(config => {
