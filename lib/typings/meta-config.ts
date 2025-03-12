@@ -32,6 +32,7 @@ export interface MetaKeyConfig {
 export interface MetaConfigComponent {
     body: PromiseComponent | Component
     bind?: MetaKeyComponentProps
+    children?: MetaConfigComponent[]
 }
 
 export type PromiseComponent = () => Promise<Component>

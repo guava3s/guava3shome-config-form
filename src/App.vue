@@ -15,6 +15,42 @@ const scopeConfig = {
       valueType: Boolean,
       defaultValue: 1434
     },
+    testChildren: {
+      title: 'Test1',
+      display: true,
+      required: {
+        value: true,
+        message: 'test children',
+        // immediate: false
+      },
+      valueType: String,
+      component: {
+        body: () => import('./MySelect.vue'),
+        children: [
+          {
+            body: () => import('./MySelectOptions.vue'),
+            bind: {
+              options: [
+                {label: 'hello', value: '1'},
+                {label: 'world', value: '2'},
+              ]
+            }
+          }
+        ]
+      },
+      dependencies: [
+        {
+          depField: 'name',
+          depValues: ['hello'],
+          depCondition: 'some',
+          reset: {
+            component: {
+              body: () => import('../lib/component/G3Input.vue')
+            }
+          }
+        }
+      ]
+    },
     name: {
       title: 'Test1',
       display: true,
@@ -29,7 +65,7 @@ const scopeConfig = {
           placeholder: 'Please input name',
           type: 'text',
           disable: false
-        }
+        },
       },
       order: 1,
       valueType: String,
@@ -216,7 +252,7 @@ const scopeConfig = {
 }
 
 const {proxy} = getCurrentInstance()
-const testValue = ref({password: '123'})
+const testValue = ref({password: '123', age: null})
 
 function init() {
   Promise.resolve().then(() => {
@@ -252,6 +288,9 @@ async function submit() {
                   :immediate="false">
       <template #_FOOTER>
         <button @click="submit">submit</button>
+      </template>
+      <template #name>
+        hello
       </template>
     </G3ConfigForm>
     <button @click="click">+1</button>

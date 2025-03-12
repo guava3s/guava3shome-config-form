@@ -112,7 +112,7 @@ app.mount('#app')
             dependencies: [
               {
                 depField: 'name',
-                depCondition: 'SOME',
+                depCondition: 'some',
                 depValues: ['SYSTEM'],
                 priority: 1,
                 reset: {
@@ -265,7 +265,7 @@ interface MetaKeyConfig {
     }
 
     /**
-     * 表单项组件
+     * 表单项组件 <=>MetaConfigComponent
      */
     component: {
         body: () => Promise<Component> | Component
@@ -275,6 +275,7 @@ interface MetaKeyConfig {
         bind?: {
             [key: string]: any
         }
+        children?: MetaConfigComponent[]
     }
 
     /**
@@ -410,7 +411,7 @@ interface MetaKeyConfig {
             }
 
             /**
-             * 表单项组件
+             * 表单项组件<=>MetaConfigComponent
              */
             component: {
                 body: () => Promise<Component> | Component
@@ -420,6 +421,7 @@ interface MetaKeyConfig {
                 bind?: {
                     [key: string]: any
                 }
+                children?: MetaConfigComponent[]
             }
 
             /**

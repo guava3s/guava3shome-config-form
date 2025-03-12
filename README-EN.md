@@ -122,7 +122,7 @@ app.mount('#app')
             dependencies: [
               {
                 depField: 'name',
-                depCondition: 'SOME',
+                depCondition: 'some',
                 depValues: ['SYSTEM'],
                 priority: 1,
                 reset: {
@@ -248,7 +248,7 @@ interface MetaKeyConfig {
     }
 
     /**
-     * Form Item Component
+     * Form Item Component<=>MetaConfigComponent
      */
     component: {
         body: () => Promise<Component> | Component
@@ -258,6 +258,7 @@ interface MetaKeyConfig {
         bind?: {
             [key: string]: any
         }
+        children?: MetaConfigComponent[]
     }
 
     order: number
@@ -376,7 +377,7 @@ interface MetaKeyConfig {
             }
 
             /**
-             * Form Item Component
+             * Form Item Component<=>MetaConfigComponent
              */
             component: {
                 body: () => Promise<Component> | Component
@@ -386,6 +387,7 @@ interface MetaKeyConfig {
                 bind?: {
                     [key: string]: any
                 }
+                children?: MetaConfigComponent[]
             }
 
             order: number

@@ -16,7 +16,15 @@
                      :tabindex="(index+1)*1000"
                      v-model="keyForValues[item.field]"
                      v-bind="item.component.bind">
-            <slot :name="item.field" :scope="deepClone(item)"></slot>
+            <template v-if="item.component.children?.length" #default>
+              <G3ChildrenComponent v-for="(obj,i) in item.component.children"
+                                   :key="i"
+                                   :body="obj.body"
+                                   :bind="obj.bind"
+                                   :children="obj.children">
+              </G3ChildrenComponent>
+            </template>
+            <slot v-if="!item.component.children" :name="item.field" :scope="deepClone(item)"></slot>
           </component>
           <div class="g3-config-form-error" :class="{'is-expand': !keyForValidate[item.field].success}">
             <div class="error-content">
@@ -36,7 +44,7 @@
 
 <script lang="ts">
 import {
-  type Component,
+  type Component, computed,
   defineAsyncComponent,
   defineComponent,
   nextTick,
@@ -67,8 +75,10 @@ import {
   type ProcessDescriptor
 } from "./typings/ability-control.ts";
 import {errorDisplayRequired, ProcessAbortError} from "./typings/runtime-error.ts";
+import G3ChildrenComponent from "./component/G3ChildrenComponent.vue";
 
 export default defineComponent({
+  components: {G3ChildrenComponent},
   props: {
     keyConfig: {
       type: Object,
@@ -356,7 +366,13 @@ export default defineComponent({
 
           if (forCondition) {
             result.change = true
+            if (checkObjectIdentical(result.data, Object.assign(deepClone(backupKeyConfig[oldKeyConfig.field]), dep.reset))) {
+              continue
+            }
             Object.assign(result.data, dep.reset)
+            if (props.debug) {
+              console.log('\nAfter dependencies config=', deepClone(result.data))
+            }
             // 清空不显示key的value
             if (result.data.display) {
               fillValue(oldKeyConfig.field, result.data)

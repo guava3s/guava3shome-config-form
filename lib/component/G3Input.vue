@@ -15,6 +15,7 @@ const props = defineProps(Object.assign(getNormalProps(), {
 <template>
   <div class="g3-input-wrapper">
     <input v-model="inputValue" :placeholder="props.placeholder" :disabled="props.disable" :type="props.type"/>
+    <slot></slot>
   </div>
 </template>
 
