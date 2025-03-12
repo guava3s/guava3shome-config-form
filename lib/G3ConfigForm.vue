@@ -235,11 +235,11 @@ export default defineComponent({
             // dependency search, 替换对应元数据
             .map(item => triggerReset(item as OmitEdMetaKeyConfigWithField).data)
 
-        Object.assign(previousKeyForValues, JSON.parse(JSON.stringify(keyForValues.value)))
+        Object.assign(previousKeyForValues, deepClone(keyForValues.value))
         if (props.debug) {
-          console.debug('[debug] init previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues)))
-          console.debug('[debug] init keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
-          console.debug('[debug] init keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
+          console.debug('[guava3shome config form] init previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues)))
+          console.debug('[guava3shome config form] init keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
+          console.debug('[guava3shome config form] init keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
         }
         // After initialization, verify the items that need to be verified immediately
         const filter = keyConfigList.value.filter(obj => {
@@ -255,7 +255,7 @@ export default defineComponent({
           order: 1,
           process: (newValue: MetaConfigKeyValues) => {
             const {result: changeRes, attach} = triggerValidatePermission.forValueChange(newValue)
-            Object.assign(previousKeyForValues, JSON.parse(JSON.stringify(newValue)))
+            Object.assign(previousKeyForValues, deepClone(newValue))
             return {
               changeKeys: attach,
               validatePermission: changeRes
@@ -318,11 +318,11 @@ export default defineComponent({
 
     watch([() => props.keyData, () => props.keyDataEffect], () => {
       if (props.debug) {
-        console.debug('[debug] update key data: keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
+        console.debug('[guava3shome config form] update key data: keyConfigList=', deepClone(keyConfigList.value))
       }
       keyConfigList.value.forEach((item) => fillValue(item.field, item))
       if (props.debug) {
-        console.debug('[debug] update key data after: keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
+        console.debug('[guava3shome config form] update key data after: keyConfigValues=', deepClone(keyForValues.value))
       }
     }, {deep: true, once: true})
 
@@ -371,7 +371,7 @@ export default defineComponent({
             }
             Object.assign(result.data, dep.reset)
             if (props.debug) {
-              console.debug('\n[debug] After dependencies config=', deepClone(result.data))
+              console.debug('\n[guava3shome config form] After dependencies config=', deepClone(result.data))
             }
             // 清空不显示key的value
             if (result.data.display) {
