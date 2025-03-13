@@ -223,7 +223,7 @@ export default defineComponent({
         keyConfigList.value = Object.entries(scopeElement)
             .map(([field, config]): RunTimeMetaKeyConfig | false => {
               const {runtimeConfig, fixed} = handleConfigConvert(field, config)
-              fillKeyValue(field, config)
+              fillKeyValue(field, runtimeConfig)
               if (fixed) {
                 return false
               }
@@ -247,7 +247,7 @@ export default defineComponent({
         // After initialization, verify the items that need to be verified immediately
         const filter = keyConfigList.value.filter((obj: RunTimeMetaKeyConfig) => {
           return (keyForValues.value[obj.field] && !baseIsEmpty(keyForValues.value[obj.field]) && (obj.required.value || obj.validator)) ||
-              (obj.required.immediate && !hasFunction(obj.validator) && obj.validator.immediate)
+              (obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate)
         })
         processValidate(filter)
 
