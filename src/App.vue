@@ -10,13 +10,8 @@ import type {DepValues} from "../lib/typings/runtime-dependency.ts";
 
 const scopeConfig = {
   'scope1': {
-    hello: {
-      fixed: true,
-      valueType: Boolean,
-      defaultValue: 1434
-    },
     testChildren: {
-      title: 'Test1',
+      title: 'Test Children',
       display: true,
       required: {
         value: true,
@@ -24,6 +19,7 @@ const scopeConfig = {
         // immediate: false
       },
       valueType: String,
+      defaultValue: '2',
       component: {
         body: () => import('./MySelect.vue'),
         children: [
@@ -44,20 +40,17 @@ const scopeConfig = {
           depValues: ['hello'],
           depCondition: 'some',
           reset: {
-            component: {
-              body: () => import('../lib/component/G3Input.vue')
-            }
+            display: false
           }
         }
       ]
     },
     name: {
-      title: 'Test1',
+      title: 'Name',
       display: true,
       required: {
         value: true,
-        message: 'Please input name,Please input namePlease input name,Please input name,Please input name,Please input namePlease input name,Please input name,Please input name,Please input name,Please input name,Please input name',
-        // immediate: false
+        message: 'Please input name,Please input namePlease input name,Please input name,Please input name'
       },
       component: {
         body: () => import('../lib/component/G3Input.vue'),
@@ -269,10 +262,6 @@ onMounted(() => {
   // init()
 })
 
-function click() {
-  testValue.value.age = 1
-}
-
 async function submit() {
   const data = await proxy.$refs.configForm.submit()
   console.log('data=', data)
@@ -283,17 +272,12 @@ async function submit() {
   <div style="max-width: 600px">
     <G3ConfigForm :key-config="scopeConfig.scope1"
                   :key-data="testValue"
-                  debug
                   ref="configForm"
                   :immediate="false">
       <template #_FOOTER>
         <button @click="submit">submit</button>
       </template>
-      <template #name>
-        hello
-      </template>
     </G3ConfigForm>
-    <button @click="click">+1</button>
   </div>
 </template>
 

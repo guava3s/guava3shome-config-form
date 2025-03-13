@@ -16,7 +16,8 @@ export interface MetaKeyConfig {
     fixed?: boolean
     title: string
     display: boolean
-    required: RequiredDescValidator
+    // final: RequiredDescValidator
+    required: RequiredDescValidator | boolean
     component: MetaConfigComponent
     order: number
     defaultValue?: any
@@ -27,6 +28,19 @@ export interface MetaKeyConfig {
     // final: MetaOptionConfig[]
     options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)
     readonly dependencies?: MetaConfigDependency[]
+}
+
+export interface RunTimeMetaKeyConfig {
+    field: keyForString<MetaConfig>
+    title: string
+    display: boolean
+    required: Required<RequiredDescValidator>
+    component: MetaConfigComponent
+    order: number
+    defaultValue?: any
+    valueType: ComponentValueType
+    validator?: Required<InputValidator>
+    options?: MetaOptionConfig[]
 }
 
 export interface MetaConfigComponent {
@@ -42,8 +56,6 @@ export interface MetaKeyComponentProps {
 }
 
 export type OmitEdMetaKeyConfig = Omit<MetaKeyConfig, 'dependencies' | 'fixed'>
-// final runtime
-export type OmitEdMetaKeyConfigWithField = OmitEdMetaKeyConfig & { readonly field: keyForString<MetaConfig> }
 
 
 export interface MetaOptionConfig {

@@ -9,29 +9,29 @@
                :class="{'g3-config-form-required': item.required.value}">
             <span>{{ item.title }}</span>
           </div>
-        </template>
 
-        <div v-if="item.display">
-          <component :is="renderComponentMap[item.field]"
-                     :tabindex="(index+1)*1000"
-                     v-model="keyForValues[item.field]"
-                     v-bind="item.component.bind">
-            <template v-if="item.component.children?.length" #default>
-              <G3ChildrenComponent v-for="(obj,i) in item.component.children"
-                                   :key="i"
-                                   :body="obj.body"
-                                   :bind="obj.bind"
-                                   :children="obj.children">
-              </G3ChildrenComponent>
-            </template>
-            <slot v-if="!item.component.children" :name="item.field" :scope="deepClone(item)"></slot>
-          </component>
-          <div class="g3-config-form-error" :class="{'is-expand': !keyForValidate[item.field].success}">
-            <div class="error-content">
-              {{ keyForValidate[item.field].message }}
+          <div>
+            <component :is="renderComponentMap[item.field]"
+                       :tabindex="(index+1)*1000"
+                       v-model="keyForValues[item.field]"
+                       v-bind="item.component.bind">
+              <template v-if="item.component.children?.length" #default>
+                <G3ChildrenComponent v-for="(obj,i) in item.component.children"
+                                     :key="i"
+                                     :body="obj.body"
+                                     :bind="obj.bind"
+                                     :children="obj.children">
+                </G3ChildrenComponent>
+              </template>
+              <slot v-if="!item.component.children" :name="item.field" :scope="deepClone(item)"></slot>
+            </component>
+            <div class="g3-config-form-error" :class="{'is-expand': !keyForValidate[item.field].success}">
+              <div class="error-content">
+                {{ keyForValidate[item.field].message }}
+              </div>
             </div>
           </div>
-        </div>
+        </template>
 
       </div>
     </div>
@@ -43,23 +43,16 @@
 </template>
 
 <script lang="ts">
-import {
-  type Component, computed,
-  defineAsyncComponent,
-  defineComponent,
-  nextTick,
-  ref,
-  shallowRef,
-  watch
-} from "vue"
+import {type Component, defineAsyncComponent, defineComponent, nextTick, ref, shallowRef, watch} from "vue"
 import type {
   keyForString,
-  MetaConfig, MetaConfigComponent,
+  MetaConfig,
+  MetaConfigComponent,
+  MetaConfigKeyValues,
   MetaKeyConfig,
-  OmitEdMetaKeyConfigWithField,
   OmitEdMetaKeyConfig,
   PromiseComponent,
-  MetaConfigKeyValues
+  RunTimeMetaKeyConfig
 } from "./typings/meta-config.ts"
 import {baseIsEmpty, checkObjectIdentical, hasFunction, hasObject} from "./util/type-check.ts"
 import type {ShallowRef} from "@vue/reactivity"
@@ -67,14 +60,25 @@ import useComponentValidator from "./util/validator.ts"
 import useDataEffect from "./util/data-effect.ts"
 import {G3Context} from "guava3shome-h5-utils"
 import {deepClone} from "guava3shome-h5-utils/dist/object-util"
-import {depConditionMap, type MetaConfigDependency} from "./typings/runtime-dependency.ts";
 import {
-  ABILITY_DATA_EFFECT, ABILITY_RESET_CONFIG,
-  ABILITY_VALIDATE, OPPORTUNITY_BEFORE,
-  OPPORTUNITY_ORDER, OPPORTUNITY_PROCESS,
+  depConditionMap,
+  type MetaConfigDependency,
+  type RuntimeMetaConfigDependency
+} from "./typings/runtime-dependency.ts";
+import {
+  ABILITY_DATA_EFFECT,
+  ABILITY_RESET_CONFIG,
+  ABILITY_VALIDATE,
+  OPPORTUNITY_BEFORE,
+  OPPORTUNITY_ORDER,
+  OPPORTUNITY_PROCESS,
   type ProcessDescriptor
 } from "./typings/ability-control.ts";
-import {errorDisplayRequired, ProcessAbortError} from "./typings/runtime-error.ts";
+import {
+  errorDisplayRequired,
+  configConvert,
+  ProcessAbortError
+} from "./util/rational.ts";
 import G3ChildrenComponent from "./component/G3ChildrenComponent.vue";
 
 export default defineComponent({
@@ -140,15 +144,15 @@ export default defineComponent({
     const ctx = new G3Context(props)
 
     // 配置显示信息集合
-    const keyConfigList = ref<OmitEdMetaKeyConfigWithField[]>([])
+    const keyConfigList = ref<RunTimeMetaKeyConfig[]>([])
     const renderComponentMap = ref<Record<keyForString<MetaConfig>, ShallowRef | Component>>({})
     const renderComponentRefs = shallowRef<Record<keyForString<MetaConfig>, MetaConfigComponent>>({})
     // 表单问题答案对象
     const keyForValues = ref<MetaConfigKeyValues>({})
     // 备份配置字段依赖对象
-    const backupKeyDependencies: Record<keyForString<MetaConfig>, MetaConfigDependency[]> = {}
+    const backupKeyDependencies: Record<keyForString<MetaConfig>, RuntimeMetaConfigDependency[]> = {}
     // 备份原始配置字段依赖对象
-    const backupKeyConfig: Record<keyForString<MetaConfig>, OmitEdMetaKeyConfigWithField> = {}
+    const backupKeyConfig: Record<keyForString<MetaConfig>, RunTimeMetaKeyConfig> = {}
     // 功能执行集合
     const abilityProcess: ProcessDescriptor[] = []
     ctx.addContextProps({
@@ -158,6 +162,7 @@ export default defineComponent({
       backupKeyDependencies,
       backupKeyConfig,
     })
+    const handleConfigConvert = configConvert(props)
 
     const {
       keyForValidate,
@@ -168,7 +173,7 @@ export default defineComponent({
     } = ctx.add(useComponentValidator)
     const {disableEffect, triggerDataEffect} = ctx.add(useDataEffect)
 
-    function fillValue(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig): void {
+    function fillKeyValue(field: keyForString<MetaConfig>, config: RunTimeMetaKeyConfig): void {
       // use sort：keyData > defaultValue
 
       const propsKeyData = props.keyData[field]
@@ -187,12 +192,6 @@ export default defineComponent({
       }
     }
 
-    function fillOptions(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig): void {
-      if (hasFunction(config.options)) {
-        config.options(field).then(res => config.options = res)
-      }
-    }
-
     function fillComponent(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig, notRender: () => boolean = () => false): void {
       config.component.bind ??= {}
       if (notRender()) {
@@ -202,15 +201,18 @@ export default defineComponent({
       renderComponentMap.value[field] = hasFunction(config.component.body) ? shallowRef(defineAsyncComponent(config.component.body as PromiseComponent)) : config.component.body
     }
 
-    function fillDependencies(field: keyForString<MetaConfig>, config: MetaKeyConfig): OmitEdMetaKeyConfigWithField {
-      const {dependencies, fixed, ...otherField} = config
+    function initDependencies(field: keyForString<MetaConfig>, {dependencies}: MetaKeyConfig): void {
       // dependency init
       if (dependencies?.length) {
         dependencies.sort((a: MetaConfigDependency, b: MetaConfigDependency) => b.priority - a.priority)
-        backupKeyDependencies[field] = deepClone(dependencies)
-        backupKeyConfig[field] = {field, ...deepClone(otherField)}
+        backupKeyDependencies[field] = deepClone(dependencies.map(item => {
+          const {reset, ...other} = item
+          return {
+            ...other,
+            reset: handleConfigConvert(field, reset).runtimeConfig
+          }
+        }))
       }
-      return Object.assign(otherField, {field})
     }
 
     // init
@@ -219,32 +221,33 @@ export default defineComponent({
         const scopeElement: MetaConfig = newValue
 
         keyConfigList.value = Object.entries(scopeElement)
-            .map(([field, config]): OmitEdMetaKeyConfigWithField | false => {
-              const configCopy = deepClone(config)
-              fillValue(field, configCopy)
-              if (config.fixed) {
+            .map(([field, config]): RunTimeMetaKeyConfig | false => {
+              const {runtimeConfig, fixed} = handleConfigConvert(field, config)
+              fillKeyValue(field, config)
+              if (fixed) {
                 return false
               }
-              fillValidate(field, configCopy)
-              fillOptions(field, configCopy)
-              fillComponent(field, configCopy)
-              return fillDependencies(field, configCopy)
+              backupKeyConfig[field] = deepClone(runtimeConfig)
+              fillValidate(field, runtimeConfig)
+              fillComponent(field, runtimeConfig)
+              initDependencies(field, config)
+              return runtimeConfig
             })
             .filter((item) => item)
-            .sort((v1, v2) => (v1 as OmitEdMetaKeyConfigWithField).order - (v2 as OmitEdMetaKeyConfigWithField).order)
+            .sort((v1, v2) => (v1 as RunTimeMetaKeyConfig).order - (v2 as RunTimeMetaKeyConfig).order)
             // dependency search, 替换对应元数据
-            .map(item => triggerReset(item as OmitEdMetaKeyConfigWithField).data)
+            .map(item => triggerReset(item as RunTimeMetaKeyConfig).data)
 
         Object.assign(previousKeyForValues, deepClone(keyForValues.value))
         if (props.debug) {
-          console.debug('[guava3shome config form] init previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues)))
-          console.debug('[guava3shome config form] init keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
-          console.debug('[guava3shome config form] init keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
+          console.debug('[config form] init previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues)))
+          console.debug('[config form] init keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
+          console.debug('[config form] init keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
         }
         // After initialization, verify the items that need to be verified immediately
-        const filter = keyConfigList.value.filter(obj => {
+        const filter = keyConfigList.value.filter((obj: RunTimeMetaKeyConfig) => {
           return (keyForValues.value[obj.field] && !baseIsEmpty(keyForValues.value[obj.field]) && (obj.required.value || obj.validator)) ||
-              (obj.required.immediate && !hasFunction(obj.validator) && obj.validator?.immediate)
+              (obj.required.immediate && !hasFunction(obj.validator) && obj.validator.immediate)
         })
         processValidate(filter)
 
@@ -318,11 +321,11 @@ export default defineComponent({
 
     watch([() => props.keyData, () => props.keyDataEffect], () => {
       if (props.debug) {
-        console.debug('[guava3shome config form] update key data: keyConfigList=', deepClone(keyConfigList.value))
+        console.debug('[config form] update key data: keyConfigList=', deepClone(keyConfigList.value))
       }
-      keyConfigList.value.forEach((item) => fillValue(item.field, item))
+      keyConfigList.value.forEach((item) => fillKeyValue(item.field, item))
       if (props.debug) {
-        console.debug('[guava3shome config form] update key data after: keyConfigValues=', deepClone(keyForValues.value))
+        console.debug('[config form] update key data after: keyConfigValues=', deepClone(keyForValues.value))
       }
     }, {deep: true, once: true})
 
@@ -346,7 +349,7 @@ export default defineComponent({
     }, {deep: true})
 
     // trigger reconfiguration
-    function triggerReset(oldKeyConfig: OmitEdMetaKeyConfigWithField) {
+    function triggerReset(oldKeyConfig: RunTimeMetaKeyConfig): { change: boolean, data: RunTimeMetaKeyConfig } {
 
       const result = {
         change: false,
@@ -371,16 +374,14 @@ export default defineComponent({
             }
             Object.assign(result.data, dep.reset)
             if (props.debug) {
-              console.debug('\n[guava3shome config form] After dependencies config=', deepClone(result.data))
+              console.debug('\n[config form] After dependencies config=', deepClone(result.data))
             }
-            // 清空不显示key的value
+            fillKeyValue(oldKeyConfig.field, result.data)
             if (result.data.display) {
-              fillValue(oldKeyConfig.field, result.data)
               fillValidate(oldKeyConfig.field, result.data)
-              fillOptions(oldKeyConfig.field, result.data)
             } else {
+              // 配置项不显示时使用defaultValue值
               errorDisplayRequired(oldKeyConfig.field, result.data)
-              keyForValues.value[oldKeyConfig.field] = ''
             }
             break
           } else {

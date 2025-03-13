@@ -3,19 +3,18 @@ import type {
     keyForString,
     MetaConfig,
     MetaConfigKeyValues,
-    MetaKeyConfig,
-    OmitEdMetaKeyConfigWithField
+    RunTimeMetaKeyConfig
 } from "../typings/meta-config.ts";
 import type {
     InputValidator, ProcessValidatePermission,
     RequiredDescValidator,
     ValidateResultParams
 } from "../typings/runtime-validate.ts";
-import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
+import {TriggerScope} from "../typings/runtime-validate.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
 import {deepClone} from "guava3shome-h5-utils/dist/object-util";
 import {baseIsEmpty, hasFunction} from "./type-check.ts";
-import {errorDisplayRequired} from "../typings/runtime-error.ts";
+import {errorDisplayRequired} from "./rational.ts";
 
 /*
 校验原则：
@@ -42,19 +41,19 @@ export default function useComponentValidator({context, props}: InternalContext)
             for (const key in newKeyValues) {
                 const equals = newKeyValues[key] !== previousKeyForValues[key]
                 if (props.debug) {
-                    console.debug('\n[guava3shome config form] for value change: key=', key)
-                    console.debug('[guava3shome config form] for value change: newKeyValues=', deepClone(newKeyValues[key]))
-                    console.debug('[guava3shome config form] for value change: previousKeyForValues=', deepClone(previousKeyForValues[key]))
-                    console.debug('[guava3shome config form] for Value change: equals=', equals)
-                    console.debug('[guava3shome config form] for value change: newKeyValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
-                    console.debug('[guava3shome config form] for value change: previousKeyForValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
+                    console.debug('\n[config form] for value change: key=', key)
+                    console.debug('[config form] for value change: newKeyValues=', deepClone(newKeyValues[key]))
+                    console.debug('[config form] for value change: previousKeyForValues=', deepClone(previousKeyForValues[key]))
+                    console.debug('[config form] for Value change: equals=', equals)
+                    console.debug('[config form] for value change: newKeyValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
+                    console.debug('[config form] for value change: previousKeyForValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
                 }
                 if (equals && !(baseIsEmpty(newKeyValues[key]) && baseIsEmpty(previousKeyForValues[key]))) {
                     changeKeys[key] = true
                 }
             }
             if (props.debug) {
-                console.debug('[guava3shome config form] for value change:final changeKeys=', deepClone(changeKeys))
+                console.debug('[config form] for value change:final changeKeys=', deepClone(changeKeys))
             }
             return {
                 result: Object.values(changeKeys).includes(true),
@@ -64,7 +63,7 @@ export default function useComponentValidator({context, props}: InternalContext)
     }
 
     // 默认校验: return success?
-    function defaultValidate(field: keyForString<MetaConfig>, required: RequiredDescValidator): boolean {
+    function defaultValidate(field: keyForString<MetaConfig>, required: Required<RequiredDescValidator>): boolean {
         if (!required.value) {
             return true
         }
@@ -86,40 +85,15 @@ export default function useComponentValidator({context, props}: InternalContext)
 
 
     // required 与 validator 相互独立，required < validator
-    function fillValidate(field: keyForString<MetaConfig>, config: MetaKeyConfig): void {
-        config.required.value ??= true
+    function fillValidate(field: keyForString<MetaConfig>, config: RunTimeMetaKeyConfig): void {
         errorDisplayRequired(field, config)
-        config.required.immediate ??= props.immediate
-        if (config.required.value) {
-            config.required.message ??= empty_prompt
-        }
-
         keyForValidate.value[field] = {
             success: config.required.immediate ? defaultValidate(field, config.required) : true,
             message: config.required.message,
         }
-
-        if (!config.validator) {
-            return
-        }
-
-        if (hasFunction(config.validator)) {
-            const validateFunc = config.validator
-            config.validator = {validate: validateFunc}
-        }
-
-        if (!config.validator.validate) {
-            throw new Error("The validator object must have a validate validation function.")
-        }
-
-
-        config.validator.triggerType ??= TriggerType.change
-        config.validator.triggerDelay ??= (config.validator.triggerType === TriggerType.change ? 200 : 0)
-        config.validator.immediate ??= props.immediate
-        config.validator.scope ??= TriggerScope.single
     }
 
-    async function validateItem(config: OmitEdMetaKeyConfigWithField): Promise<boolean> {
+    async function validateItem(config: RunTimeMetaKeyConfig): Promise<boolean> {
         const kfV = keyForValidate.value[config.field]
         const defaultSuccess = defaultValidate(config.field, config.required)
         kfV.success = defaultSuccess
@@ -157,10 +131,10 @@ export default function useComponentValidator({context, props}: InternalContext)
     }
 
     // 校验前过滤
-    function processValidateFilter(configList: OmitEdMetaKeyConfigWithField[], changeKeys: {
+    function processValidateFilter(configList: RunTimeMetaKeyConfig[], changeKeys: {
         [key: string]: boolean
     } | null = null) {
-        let list: OmitEdMetaKeyConfigWithField[] = configList.filter(item => (item.required.value || item.validator))
+        let list: RunTimeMetaKeyConfig[] = configList.filter(item => (item.required.value || item.validator))
         // 仅对required.value=true/validator进行校验
         // 存在validator.scope为propagation，默认对所有
         if (list.some(item => item.validator && !hasFunction(item.validator) && item.validator.scope === TriggerScope.propagation)) {
@@ -173,18 +147,18 @@ export default function useComponentValidator({context, props}: InternalContext)
     }
 
     // 执行change校验
-    async function processValidate(configList: OmitEdMetaKeyConfigWithField[], changeKeys: {
+    async function processValidate(configList: RunTimeMetaKeyConfig[], changeKeys: {
         [key: string]: boolean
     } | null = null): Promise<boolean> {
-
         if (props.debug) {
-            console.debug('[guava3shome config form] processValidate: receive config List=', JSON.parse(JSON.stringify(configList)))
+            console.debug('[config form] processValidate: receive config List=', deepClone(configList))
+            console.debug('[config form] Key For Values=', deepClone(context.keyForValues.value))
         }
 
-        const list: OmitEdMetaKeyConfigWithField[] = processValidateFilter(configList, changeKeys)
+        const list: RunTimeMetaKeyConfig[] = processValidateFilter(configList, changeKeys)
 
         if (props.debug) {
-            console.debug('[guava3shome config form] processValidate: start config List=', JSON.parse(JSON.stringify(list)))
+            console.debug('[config form] processValidate: start config List=', JSON.parse(JSON.stringify(list)))
         }
 
         const result = await Promise.all(list.map(config => {
@@ -205,6 +179,10 @@ export default function useComponentValidator({context, props}: InternalContext)
                 })
             })
         )
+
+        if (props.debug) {
+            console.debug('[config form] processValidate result=', result)
+        }
 
         return !result.includes(false)
     }
