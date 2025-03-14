@@ -412,6 +412,11 @@ export default defineComponent({
         }
         // 提交数据
         const cloneData = deepClone(keyForValues.value)
+        keyConfigList.value.forEach(item => {
+          if (item.submitConvert) {
+            cloneData[item.field] = item.submitConvert(cloneData[item.field])
+          }
+        })
         if (slots._FOOTER) {
           return cloneData
         } else {

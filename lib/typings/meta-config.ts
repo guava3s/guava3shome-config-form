@@ -25,6 +25,8 @@ export interface MetaKeyConfig {
     valueType: ComponentValueType
     // 根据组件自定义 final: InputValidator
     validator?: ValidateFunction | InputValidator
+    // 仅当fixed为false时submitConvert才有效
+    submitConvert?: SubmitConvert
     // final: MetaOptionConfig[]
     options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)
     readonly dependencies?: MetaConfigDependency[]
@@ -40,6 +42,7 @@ export interface RunTimeMetaKeyConfig {
     defaultValue?: any
     valueType: ComponentValueType
     validator?: Required<InputValidator>
+    submitConvert?: SubmitConvert
     options?: MetaOptionConfig[]
 }
 
@@ -50,6 +53,7 @@ export interface MetaConfigComponent {
 }
 
 export type PromiseComponent = () => Promise<Component>
+export type SubmitConvert = (value: any) => any
 
 export interface MetaKeyComponentProps {
     [key: string]: any
