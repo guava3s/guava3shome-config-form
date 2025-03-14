@@ -298,6 +298,11 @@ interface MetaKeyConfig {
         | ((value?: any) => object);  // 对应 Object
 
     /**
+     * 提交时数据转换
+     */
+    submitConvert?: (value: any) => any
+
+    /**
      * 校验器，对required配置进行增强，支持函数与对象配置
      * 当同时存在required与validator字段时，会依次对required、validator字段信息进行校验
      */
@@ -368,7 +373,7 @@ interface MetaKeyConfig {
          * some: 依赖字段值在 depValues 中出现即满足条件
          * not_in: 依赖字段值不在 depValues 中出现即满足条件
          * all: 依赖字段值（数组值）全部出现 depValues 中出现即满足条件
-         * 
+         *
          * 也可以自定义判断函数，target为当前字段值，values为depValues值
          */
         depCondition: 'some' | 'not_in' | 'all' | ((target: any, values: Array<string | number | boolean>) => boolean)
@@ -442,6 +447,11 @@ interface MetaKeyConfig {
                 | ((value?: any) => boolean)  // 对应 Boolean
                 | ((value?: any) => any[])    // 对应 Array
                 | ((value?: any) => object);  // 对应 Object
+
+            /**
+             * 提交时数据转换
+             */
+            submitConvert?: (value: any) => any
 
             /**
              * 校验器，对required配置进行增强，支持函数与对象配置
