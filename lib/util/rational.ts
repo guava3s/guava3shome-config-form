@@ -9,10 +9,16 @@ import type {
 } from "../typings/meta-config.ts";
 import {TriggerScope, TriggerType} from "../typings/runtime-validate.ts";
 import {deepClone} from "guava3shome-h5-utils/dist/object-util";
+import type {InternalProps} from "guava3shome-h5-utils/dist/Context";
 
+interface ConfigRationalConverter {
+    required: (field: keyForString<MetaConfig>, required: RequiredDescValidator | boolean) => Required<RequiredDescValidator>
+    validator: (field: keyForString<MetaConfig>, validator?: ValidateFunction | InputValidator) => Required<InputValidator> | null
+    options: (field: keyForString<MetaConfig>, options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)) => Promise<MetaOptionConfig[]>
+}
 
-export function configConvert(props) {
-    const configRationalConverter = {
+export function configConvert(props: InternalProps) {
+    const configRationalConverter: ConfigRationalConverter = {
         required: (field: keyForString<MetaConfig>, required: RequiredDescValidator | boolean): Required<RequiredDescValidator> => {
             const message = `The '${field}' value cannot be empty.`;
             if (typeof required === "boolean") {
@@ -40,16 +46,18 @@ export function configConvert(props) {
                     }
                 } else {
                     errorValidate(field, validator)
-                    validator.triggerType ??= TriggerType.change
-                    validator.triggerDelay ??= (validator.triggerType === TriggerType.change ? 200 : 0)
-                    validator.immediate ??= props.immediate
-                    validator.scope ??= TriggerScope.single
-                    return validator
+                    return {
+                        validate: validator.validate,
+                        triggerType: validator.triggerType ?? TriggerType.change,
+                        triggerDelay: validator.triggerDelay ?? (validator.triggerType === TriggerType.change ? 200 : 0),
+                        immediate: validator.immediate ?? props.immediate,
+                        scope: validator.scope ?? TriggerScope.single
+                    }
                 }
             }
             return null
         },
-        options: async (field: keyForString<MetaConfig>, options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)): MetaOptionConfig[] | [] => {
+        options: async (field: keyForString<MetaConfig>, options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)): Promise<MetaOptionConfig[]> => {
             if (options) {
                 if (hasFunction(options)) {
                     return await options(field)
@@ -63,9 +71,10 @@ export function configConvert(props) {
         fixed: boolean
     } => {
         const newConfig = Object.entries(config).reduce((result, [key, value]) => {
-            result[key] = deepClone(configRationalConverter[key]?.(field, value) ?? value)
-            return result
-        }, ({} as { [key: string]: any }))
+            const converterKey = key as keyof ConfigRationalConverter
+            result[converterKey] = deepClone(configRationalConverter[converterKey]?.(field, value) ?? value);
+            return result;
+        }, {} as { [key in keyof RunTimeMetaKeyConfig]: any });
         return {
             runtimeConfig: Object.assign(newConfig, {field}),
             fixed: config.fixed ?? false,
