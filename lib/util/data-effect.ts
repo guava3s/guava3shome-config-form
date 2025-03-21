@@ -1,36 +1,46 @@
-import {ref} from "vue";
-import type {SlaveFieldValueMap} from "../typings/meta-config.ts";
 import type {InternalContext} from "guava3shome-h5-utils";
+import type {SlaveFieldValueMap} from "../typings/runtime-data-effect.ts";
+import type {keyForString, MetaConfig, RunTimeMetaKeyConfig} from "../typings/meta-config.ts";
+import {ABILITY_DATA_EFFECT, OPPORTUNITY_PROCESS} from "../typings/ability-control.ts";
+import type {MetaConfigDependency} from "../typings/runtime-dependency.ts";
+
 
 export default function useDataEffect({context, props}: InternalContext) {
-    // 禁用数据影响判定数组
-    const disableEffect = ref<boolean[]>([])
 
-    function triggerDataEffect(fieldMap: string[]) {
-        for (let masterField of fieldMap) {
-            if (props.keyDataEffect[masterField]?.length > 0) {
+    context.abilityProcess.push({
+        opportunity: OPPORTUNITY_PROCESS,
+        name: ABILITY_DATA_EFFECT,
+        order: 10,
+        process: () => {
+            const fieldList = context.keyConfigList.value
+                .map((item: RunTimeMetaKeyConfig) => item.field)
+                .filter((field: keyForString<MetaConfig>) => props.keyDataEffect[field]?.length);
+            for (const masterField of fieldList) {
 
-                const slaveFields = new Set()
-                props.keyDataEffect[masterField].forEach((item: SlaveFieldValueMap) => {
-                    slaveFields.add(item.slaveField)
+                const slaveFieldsMap: Map<keyForString<MetaConfig>, Map<any, any>> = props.keyDataEffect[masterField].reduce((res: Map<keyForString<MetaConfig>, Map<any, any>>, item: SlaveFieldValueMap) => {
+                    res.set(item.slaveField, item.slaveValueMap)
+                    return res
+                }, new Map<keyForString<MetaConfig>, Map<any, any>>())
 
-                    for (const [key, value] of Object.entries(item.slaveValueMap)) {
-                        if (context.keyForValues.value[masterField] === key) {
-                            disableEffect.value.push(true)
-                            context.keyForValues.value[item.slaveField] = value
+                for (const [slaveField, slaveValueMap] of Array.from(slaveFieldsMap)) {
+
+                    // 排除互逆依赖
+                    if (context.backupKeyDependencies[slaveField]?.find((dep: MetaConfigDependency) => dep.depField === masterField)) {
+                        break
+                    }
+
+                    for (const [masterValue, slaveValue] of slaveValueMap) {
+
+                        if (context.keyForValues.value[masterField] === masterValue) {
+                            context.keyForValues.value[slaveField] = slaveValue
                             break
                         }
-                        disableEffect.value.push(false)
                     }
-                })
-
-                triggerDataEffect(Array.from(slaveFields) as string[])
+                }
             }
         }
-    }
+    })
 
-    return {
-        disableEffect,
-        triggerDataEffect
-    }
+
+    return {}
 }

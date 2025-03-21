@@ -68,7 +68,7 @@ import {
 import {
   ABILITY_DATA_EFFECT,
   ABILITY_RESET_CONFIG,
-  ABILITY_VALIDATE,
+  ABILITY_VALIDATE, OPPORTUNITY_AFTER,
   OPPORTUNITY_BEFORE,
   OPPORTUNITY_ORDER,
   OPPORTUNITY_PROCESS,
@@ -80,6 +80,7 @@ import {
   ProcessAbortError
 } from "./util/rational.ts";
 import G3ChildrenComponent from "./component/G3ChildrenComponent.vue";
+import type {DataEffect} from "./typings/runtime-data-effect.ts";
 
 export default defineComponent({
   components: {G3ChildrenComponent},
@@ -108,7 +109,7 @@ export default defineComponent({
      * 主从数据影响：只针对数据不涉及配置；若同时存在依赖，则依赖优先
      * {[masterField: string]: Array<{
      *    slaveField:string
-     *    valueMap: {
+     *    slaveValueMap: {
      *      mFValue1: sFValue1,
      *      mFValue3: sFValue3,
      *      ...
@@ -116,7 +117,7 @@ export default defineComponent({
      * }>}
      */
     keyDataEffect: {
-      type: Object,
+      type: Object as () => DataEffect,
       required: false,
       default: () => {
         return {}
@@ -151,27 +152,30 @@ export default defineComponent({
     const keyForValues = ref<MetaConfigKeyValues>({})
     // 备份配置字段依赖对象
     const backupKeyDependencies: Record<keyForString<MetaConfig>, RuntimeMetaConfigDependency[]> = {}
-    // 备份原始配置字段依赖对象
+    // 备份原始配置字段对象
     const backupKeyConfig: Record<keyForString<MetaConfig>, RunTimeMetaKeyConfig> = {}
     // 功能执行集合
     const abilityProcess: ProcessDescriptor[] = []
     ctx.addContextProps({
+      abilityProcess,
       keyConfigList,
       renderComponentMap,
       keyForValues,
       backupKeyDependencies,
       backupKeyConfig,
     })
+
     const handleConfigConvert = configConvert(props)
 
+    // 使用数据校验功能
     const {
       keyForValidate,
       fillValidate,
       processValidate,
-      triggerValidatePermission,
       previousKeyForValues
     } = ctx.add(useComponentValidator)
-    const {disableEffect, triggerDataEffect} = ctx.add(useDataEffect)
+    // 使用数据影响功能
+    ctx.add(useDataEffect)
 
     function fillKeyValue(field: keyForString<MetaConfig>, config: RunTimeMetaKeyConfig): void {
       // use sort：keyData > defaultValue
@@ -240,9 +244,9 @@ export default defineComponent({
 
         Object.assign(previousKeyForValues, deepClone(keyForValues.value))
         if (props.debug) {
-          console.debug('[config form] init previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues)))
-          console.debug('[config form] init keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
-          console.debug('[config form] init keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
+          console.debug('[config form] Init previousKeyForValues=', JSON.parse(JSON.stringify(previousKeyForValues)))
+          console.debug('[config form] Init keyConfigList=', JSON.parse(JSON.stringify(keyConfigList.value)))
+          console.debug('[config form] Init keyConfigValues=', JSON.parse(JSON.stringify(keyForValues.value)))
         }
         // After initialization, verify the items that need to be verified immediately
         const filter = keyConfigList.value.filter((obj: RunTimeMetaKeyConfig) => {
@@ -253,23 +257,9 @@ export default defineComponent({
 
         // -----------------------------------------------------------------------------------
         abilityProcess.push({
-          opportunity: OPPORTUNITY_BEFORE,
-          name: ABILITY_VALIDATE,
-          order: 1,
-          process: (newValue: MetaConfigKeyValues) => {
-            const {result: changeRes, attach} = triggerValidatePermission.forValueChange(newValue)
-            Object.assign(previousKeyForValues, deepClone(newValue))
-            return {
-              changeKeys: attach,
-              validatePermission: changeRes
-            }
-          }
-        })
-
-        abilityProcess.push({
           opportunity: OPPORTUNITY_PROCESS,
           name: ABILITY_RESET_CONFIG,
-          order: 1,
+          order: 20,
           process: () => {
             let hasChange = false
             const reduceList = keyConfigList.value.map(item => {
@@ -284,32 +274,6 @@ export default defineComponent({
           }
         })
 
-        abilityProcess.push({
-          opportunity: OPPORTUNITY_PROCESS,
-          name: ABILITY_VALIDATE,
-          order: 2,
-          process: (newValue: MetaConfigKeyValues, previousRes: any) => {
-            if (previousRes?.validatePermission) {
-              processValidate(keyConfigList.value, previousRes.changeKeys)
-            }
-          }
-        })
-
-        abilityProcess.push({
-          opportunity: OPPORTUNITY_PROCESS,
-          name: ABILITY_DATA_EFFECT,
-          order: 3,
-          process: () => {
-            nextTick(() => {
-              if (disableEffect.value.includes(true)) {
-                disableEffect.value.length = 0
-                throw new ProcessAbortError("")
-              }
-              triggerDataEffect(keyConfigList.value.map(item => item.field))
-            })
-          }
-        })
-
         // 定义排序权重映射
         abilityProcess.sort((a, b) => {
           const stageDiff = OPPORTUNITY_ORDER[a.opportunity] - OPPORTUNITY_ORDER[b.opportunity]
@@ -319,14 +283,16 @@ export default defineComponent({
       }
     }, {immediate: true, deep: true, once: true})
 
-    watch([() => props.keyData, () => props.keyDataEffect], () => {
-      if (props.debug) {
-        console.debug('[config form] update key data: keyConfigList=', deepClone(keyConfigList.value))
-      }
+    watch(() => props.keyDataEffect, () => {
+      console.log('1')
       keyConfigList.value.forEach((item) => fillKeyValue(item.field, item))
-      if (props.debug) {
-        console.debug('[config form] update key data after: keyConfigValues=', deepClone(keyForValues.value))
-      }
+      console.log('2')
+    }, {deep: true, once: true})
+
+    watch(() => props.keyData, () => {
+      console.log('3')
+      keyConfigList.value.forEach((item) => fillKeyValue(item.field, item))
+      console.log('4')
     }, {deep: true, once: true})
 
 

@@ -66,14 +66,5 @@ export interface MetaOptionConfig {
     [key: string]: string | number
 }
 
-export interface DataEffect {
-    [masterField: string]: SlaveFieldValueMap[]
-}
-
-export interface SlaveFieldValueMap {
-    slaveField: string
-    slaveValueMap: Record<string, string>[]
-}
-
 export type MetaConfigKeyValues = Record<keyForString<MetaConfig>, any>
 

@@ -5,7 +5,8 @@ import {
   type SuccessCallback,
 } from "../lib/typings/runtime-validate.ts";
 import {defineComponent, getCurrentInstance, h, onMounted, ref} from "vue";
-import type {DepValues} from "../lib/typings/runtime-dependency.ts";
+import {type depConditionMap, DepValues} from "../lib/typings/runtime-dependency.ts";
+import type {DataEffect} from "../lib/typings/runtime-data-effect.ts";
 
 
 const scopeConfig = {
@@ -29,6 +30,7 @@ const scopeConfig = {
               options: [
                 {label: 'hello', value: '1'},
                 {label: 'world', value: '2'},
+                {label: 'fuck you', value: '3'},
               ]
             }
           }
@@ -80,6 +82,18 @@ const scopeConfig = {
           success(true)
         }
       },
+      dependencies: [
+        {
+          depField: 'testChildren',
+          depValues: ['1'],
+          depCondition: 'some',
+          reset: {
+            display: false,
+            required: false,
+            defaultValue: 'for test children'
+          }
+        }
+      ]
     },
     age: {
       title: 'Role Age',
@@ -244,6 +258,18 @@ const scopeConfig = {
   }
 }
 
+const testKeyDataEffect: DataEffect = {
+  testChildren: [
+    {
+      slaveField: 'name',
+      slaveValueMap: new Map<any, any>([
+        ['1', 'Jack'],
+        ['3', 'Helen'],
+      ])
+    }
+  ]
+}
+
 const {proxy} = getCurrentInstance()
 const testValue = ref({password: '123', age: null})
 
@@ -272,6 +298,7 @@ async function submit() {
   <div style="max-width: 600px">
     <G3ConfigForm :key-config="scopeConfig.scope1"
                   :key-data="testValue"
+                  :key-data-effect="testKeyDataEffect"
                   ref="configForm"
                   :immediate="false">
       <template #_FOOTER>

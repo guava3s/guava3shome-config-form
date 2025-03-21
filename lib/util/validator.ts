@@ -15,6 +15,14 @@ import type {InternalContext} from "guava3shome-h5-utils";
 import {deepClone} from "guava3shome-h5-utils/dist/object-util";
 import {baseIsEmpty, hasFunction} from "./type-check.ts";
 import {errorDisplayRequired} from "./rational.ts";
+import {
+    ABILITY_VALIDATE,
+    OPPORTUNITY_AFTER,
+    OPPORTUNITY_PROCESS
+} from "../typings/ability-control.ts";
+import type {
+    ProcessDescriptor
+} from '../typings/ability-control.ts'
 
 /*
 校验原则：
@@ -25,7 +33,6 @@ import {errorDisplayRequired} from "./rational.ts";
     校验时：
     前提仅对required为true或validator存在的配置项进行校验，可以控制范围；若是validator.scope为propagation，则全部校验；反之仅校验值变化的配置项
  */
-const empty_prompt: string = 'The field value cannot be empty.'
 
 export default function useComponentValidator({context, props}: InternalContext) {
 
@@ -42,11 +49,11 @@ export default function useComponentValidator({context, props}: InternalContext)
                 const equals = newKeyValues[key] !== previousKeyForValues[key]
                 if (props.debug) {
                     console.debug('\n[config form] for value change: key=', key)
-                    console.debug('[config form] for value change: newKeyValues=', deepClone(newKeyValues[key]))
-                    console.debug('[config form] for value change: previousKeyForValues=', deepClone(previousKeyForValues[key]))
-                    console.debug('[config form] for Value change: equals=', equals)
-                    console.debug('[config form] for value change: newKeyValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
-                    console.debug('[config form] for value change: previousKeyForValues baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
+                    console.debug('[config form] for value change: new value=', deepClone(newKeyValues[key]))
+                    console.debug('[config form] for value change: previous value=', deepClone(previousKeyForValues[key]))
+                    console.debug('[config form] for Value change: new and previous equals=', equals)
+                    console.debug('[config form] for value change: new value baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
+                    console.debug('[config form] for value change: previous value baseIsEmpty=', baseIsEmpty(newKeyValues[key]))
                 }
                 if (equals && !(baseIsEmpty(newKeyValues[key]) && baseIsEmpty(previousKeyForValues[key]))) {
                     changeKeys[key] = true
@@ -187,11 +194,35 @@ export default function useComponentValidator({context, props}: InternalContext)
         return !result.includes(false)
     }
 
+
+    context.abilityProcess.push({
+        opportunity: OPPORTUNITY_PROCESS,
+        name: ABILITY_VALIDATE,
+        order: 999,
+        process: (newValue: MetaConfigKeyValues) => {
+            const {result: changeRes, attach} = triggerValidatePermission.forValueChange(newValue)
+            Object.assign(previousKeyForValues, deepClone(newValue))
+            return {
+                changeKeys: attach,
+                validatePermission: changeRes
+            }
+        }
+    })
+    context.abilityProcess.push({
+        opportunity: OPPORTUNITY_AFTER,
+        name: ABILITY_VALIDATE,
+        order: 30,
+        process: (newValue: MetaConfigKeyValues, previousRes: any) => {
+            if (previousRes?.validatePermission) {
+                processValidate(context.keyConfigList.value, previousRes.changeKeys)
+            }
+        }
+    })
+
     return {
         keyForValidate,
         fillValidate,
         processValidate,
-        previousKeyForValues,
-        triggerValidatePermission
+        previousKeyForValues
     }
 }
