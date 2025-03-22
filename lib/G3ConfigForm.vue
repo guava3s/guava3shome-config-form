@@ -283,16 +283,9 @@ export default defineComponent({
       }
     }, {immediate: true, deep: true, once: true})
 
-    watch(() => props.keyDataEffect, () => {
-      console.log('1')
-      keyConfigList.value.forEach((item) => fillKeyValue(item.field, item))
-      console.log('2')
-    }, {deep: true, once: true})
 
     watch(() => props.keyData, () => {
-      console.log('3')
       keyConfigList.value.forEach((item) => fillKeyValue(item.field, item))
-      console.log('4')
     }, {deep: true, once: true})
 
 
