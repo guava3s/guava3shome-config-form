@@ -43,7 +43,7 @@
 </template>
 
 <script lang="ts">
-import {type Component, defineAsyncComponent, defineComponent, nextTick, ref, shallowRef, watch} from "vue"
+import {type Component, defineAsyncComponent, defineComponent, ref, shallowRef, watch} from "vue"
 import type {
   keyForString,
   MetaConfig,

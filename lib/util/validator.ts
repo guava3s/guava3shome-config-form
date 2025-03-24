@@ -20,9 +20,6 @@ import {
     OPPORTUNITY_AFTER,
     OPPORTUNITY_PROCESS
 } from "../typings/ability-control.ts";
-import type {
-    ProcessDescriptor
-} from '../typings/ability-control.ts'
 
 /*
 校验原则：
