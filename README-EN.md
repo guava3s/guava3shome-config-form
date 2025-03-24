@@ -122,7 +122,7 @@ app.mount('#app')
             dependencies: [
               {
                 depField: 'name',
-                depCondition: 'some',
+                depCondition: 'in',
                 depValues: ['SYSTEM'],
                 priority: 1,
                 reset: {
@@ -350,13 +350,13 @@ interface MetaKeyConfig {
 
         /**
          * Determine the condition by judging the value of the dependent field based on this condition. If it is met, assign the reset object as a new configuration to this table item
-         * some:  The appearance of dependent field values in depValues satisfies the condition
+         * in:  The appearance of dependent field values in depValues satisfies the condition
          * not_in: If the dependent field value does not appear in depValues, the condition is met
          * all:  If all dependent field values (array values) appear in depValues, the condition is met
          *
          * You can also customize the judgment function, where target is the current field value and values are depValues values.
          */
-        depCondition: 'some' | 'not_in' | 'all' | ((target: any, values: Array<string | number | boolean>) => boolean)
+        depCondition: 'in' | 'not_in' | 'all' | ((target: any, values: Array<string | number | boolean>) => boolean)
 
         /**
          * The priority of the dependency in the set；The larger the value, the higher the priority

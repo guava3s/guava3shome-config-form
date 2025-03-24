@@ -112,7 +112,7 @@ app.mount('#app')
             dependencies: [
               {
                 depField: 'name',
-                depCondition: 'some',
+                depCondition: 'in',
                 depValues: ['SYSTEM'],
                 priority: 1,
                 reset: {
@@ -370,13 +370,13 @@ interface MetaKeyConfig {
 
         /**
          * 判断条件，根据该条件对依赖字段的值进行判断，若是满足则将 reset 对象作为新配置赋予给此表单项
-         * some: 依赖字段值在 depValues 中出现即满足条件
+         * in: 依赖字段值在 depValues 中出现即满足条件
          * not_in: 依赖字段值不在 depValues 中出现即满足条件
          * all: 依赖字段值（数组值）全部出现 depValues 中出现即满足条件
          *
          * 也可以自定义判断函数，target为当前字段值，values为depValues值
          */
-        depCondition: 'some' | 'not_in' | 'all' | ((target: any, values: Array<string | number | boolean>) => boolean)
+        depCondition: 'in' | 'not_in' | 'all' | ((target: any, values: Array<string | number | boolean>) => boolean)
 
         /**
          * 该依赖在集合中的优先级；数值越大，优先级越高

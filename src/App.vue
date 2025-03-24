@@ -86,7 +86,7 @@ const scopeConfig = {
         {
           depField: 'testChildren',
           depValues: ['1'],
-          depCondition: 'some',
+          depCondition: 'in',
           reset: {
             display: false,
             required: false,
@@ -142,7 +142,7 @@ const scopeConfig = {
           depValues: [
             'sbs1',
           ],
-          // depCondition: 'some',
+          // depCondition: 'in',
           depCondition: (value: any, values: string[]) => {
             console.log('value=', value)
             if (!value.trim()) {
@@ -178,7 +178,7 @@ const scopeConfig = {
           depValues: [
             'ssss',
           ],
-          depCondition: 'some',
+          depCondition: 'in',
           priority: 1,
           reset: {
             required: {

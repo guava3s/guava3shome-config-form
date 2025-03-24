@@ -21,7 +21,7 @@ export interface RuntimeMetaConfigDependency {
 
 
 export const depConditionMap = {
-    'some': (target: any, values: DepValues): boolean => values.includes(target),
+    'in': (target: any, values: DepValues): boolean => values.includes(target),
     'not_in': (target: any, values: DepValues): boolean => !values.includes(target),
     'all': (target: any, values: DepValues): boolean => {
         let arr = target
