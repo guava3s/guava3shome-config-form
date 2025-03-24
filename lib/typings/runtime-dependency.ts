@@ -28,6 +28,6 @@ export const depConditionMap = {
         if (!Array.isArray(target)) {
             arr = [target]
         }
-        return !arr.every((item: any) => values.includes(item))
+        return arr.every((item: any) => values.includes(item))
     },
 }
