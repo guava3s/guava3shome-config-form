@@ -17,11 +17,7 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
-public
-src
-
-index.html
-env.d.ts
+.temp
 
 .vscode
 # Editor directories and files
