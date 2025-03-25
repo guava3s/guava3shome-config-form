@@ -1,37 +1,9 @@
 {
-  "name": "guava3shome-config-form",
-  "version": "0.8.3",
-  "type": "module",
-  "keywords": [
-    "vue",
-    "vue3",
-    "form",
-    "G3ConfigForm",
-    "guava3shome"
-  ],
-  "main": "./dist/g3-config-form.es.js",
-  "typings": "./lib/typings/index.d.ts",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc && vite build",
-    "serve": "vite preview",
-    "build-only": "vite build"
-  },
-  "author": "HuangSouth <2168626265@qq.com>",
-  "license": "MIT",
-  "dependencies": {
-    "guava3shome-h5-utils": "^1.1.0",
-    "vue": "^3.4.21"
+    "dev": "vuepress dev docs",
+    "build": "vuepress build docs"
   },
   "devDependencies": {
-    "@tsconfig/node22": "^22.0.0",
-    "@types/node": "^22.10.2",
-    "@vitejs/plugin-vue": "^5.2.1",
-    "@vue/tsconfig": "^0.7.0",
-    "npm-run-all2": "^7.0.2",
-    "typescript": "~5.6.3",
-    "vite": "^6.0.5",
-    "vite-plugin-vue-devtools": "^7.6.8",
-    "vue-tsc": "^2.1.10"
+    "vuepress": "^1.9.10"
   }
 }
