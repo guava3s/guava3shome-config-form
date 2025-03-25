@@ -1,3 +1,7 @@
+---
+sidebar: auto
+lang: en-US
+---
 # G3ConfigForm
 
 Customizable Dynamic Logic Form Configuration
