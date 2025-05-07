@@ -72,9 +72,9 @@ export function configConvert(props: InternalProps) {
     } => {
         const newConfig = Object.entries(config).reduce((result, [key, value]) => {
             const converterKey = key as keyof ConfigRationalConverter
-            result[converterKey] = deepClone(configRationalConverter[converterKey]?.(field, value) ?? value);
-            return result;
-        }, {} as { [key in keyof RunTimeMetaKeyConfig]: any });
+            result[converterKey] = deepClone(configRationalConverter[converterKey]?.(field, value) ?? value)
+            return result
+        }, {} as { [key in keyof RunTimeMetaKeyConfig]: any })
         return {
             runtimeConfig: Object.assign(newConfig, {field}),
             fixed: config.fixed ?? false,
