@@ -5,7 +5,6 @@ import {
   type SuccessCallback,
 } from "../lib/typings/runtime-validate.ts";
 import {defineComponent, getCurrentInstance, h, onMounted, ref} from "vue";
-import {type depConditionMap, DepValues} from "../lib/typings/runtime-dependency.ts";
 import type {DataEffect} from "../lib/typings/runtime-data-effect.ts";
 
 
