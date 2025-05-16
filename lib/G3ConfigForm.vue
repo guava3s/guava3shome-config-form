@@ -14,6 +14,7 @@
             <component :is="renderComponentMap[item.field]"
                        :tabindex="(index+1)*1000"
                        v-model="keyForValues[item.field]"
+                       :copy-config-form-values="JSON.parse(JSON.stringify(keyForValues.value))"
                        v-bind="item.component.bind">
               <template v-if="item.component.children?.length" #default>
                 <G3ChildrenComponent v-for="(obj,i) in item.component.children"
@@ -198,7 +199,7 @@ export default defineComponent({
     }
 
     function fillComponent(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig, notRender: () => boolean = () => false): void {
-      Object.assign(config.component.bind ??= {}, {copyConfigFormValues: JSON.parse(JSON.stringify(keyForValues.value))})
+      config.component.bind ??= {}
       if (notRender()) {
         return
       }
