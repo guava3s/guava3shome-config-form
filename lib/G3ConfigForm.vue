@@ -14,7 +14,7 @@
             <component :is="renderComponentMap[item.field]"
                        :tabindex="(index+1)*1000"
                        v-model="keyForValues[item.field]"
-                       :copy-config-form-values="JSON.parse(JSON.stringify(keyForValues.value))"
+                       :copy-config-form-values="JSON.parse(JSON.stringify(keyForValues))"
                        v-bind="item.component.bind">
               <template v-if="item.component.children?.length" #default>
                 <G3ChildrenComponent v-for="(obj,i) in item.component.children"
