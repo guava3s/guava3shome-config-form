@@ -35,7 +35,8 @@
 
       </div>
     </div>
-    <slot v-if="!readonly && $slots._FOOTER" name="_FOOTER" :fieldData="JSON.parse(JSON.stringify(keyForValues))"></slot>
+    <slot v-if="!readonly && $slots._FOOTER" name="_FOOTER"
+          :fieldData="JSON.parse(JSON.stringify(keyForValues))"></slot>
     <div v-else-if="!readonly && !$slots._FOOTER" class="g3-config-form-footer">
       <button @click="submit">submit</button>
     </div>
@@ -197,7 +198,7 @@ export default defineComponent({
     }
 
     function fillComponent(field: keyForString<MetaConfig>, config: OmitEdMetaKeyConfig, notRender: () => boolean = () => false): void {
-      config.component.bind ??= {}
+      Object.assign(config.component.bind ??= {}, {copyConfigFormValues: JSON.parse(JSON.stringify(keyForValues.value))})
       if (notRender()) {
         return
       }
