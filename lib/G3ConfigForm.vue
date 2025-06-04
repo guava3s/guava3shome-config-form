@@ -68,10 +68,7 @@ import {
   type RuntimeMetaConfigDependency
 } from "./typings/runtime-dependency.ts";
 import {
-  ABILITY_DATA_EFFECT,
   ABILITY_RESET_CONFIG,
-  ABILITY_VALIDATE, OPPORTUNITY_AFTER,
-  OPPORTUNITY_BEFORE,
   OPPORTUNITY_ORDER,
   OPPORTUNITY_PROCESS,
   type ProcessDescriptor
@@ -79,7 +76,7 @@ import {
 import {
   errorDisplayRequired,
   configConvert,
-  ProcessAbortError
+  ProcessAbortError, SimilarRationalityError
 } from "./util/rational.ts";
 import G3ChildrenComponent from "./component/G3ChildrenComponent.vue";
 import type {DataEffect} from "./typings/runtime-data-effect.ts";
@@ -179,6 +176,45 @@ export default defineComponent({
     // 使用数据影响功能
     ctx.add(useDataEffect)
 
+
+    function generateConfig(scopeList: [string, MetaKeyConfig][]): RunTimeMetaKeyConfig[] {
+      return scopeList.map(([field, config]): RunTimeMetaKeyConfig | false => {
+        const {runtimeConfig, fixed} = handleConfigConvert(field, config)
+        fillKeyValue(field, runtimeConfig)
+        if (fixed) {
+          return false
+        }
+        backupKeyConfig[field] = runtimeConfig
+        fillValidate(field, runtimeConfig)
+        fillComponent(field, runtimeConfig)
+        initDependencies(field, config)
+        return runtimeConfig
+      })
+          .filter((item) => item)
+          .sort((v1, v2) => (v1 as RunTimeMetaKeyConfig).order - (v2 as RunTimeMetaKeyConfig).order)
+          // dependency search, 替换对应元数据
+          .map(item => triggerReset(item as RunTimeMetaKeyConfig).data)
+    }
+
+    function fillSimilarItem(scopeElement: MetaConfig): MetaConfig {
+      const result = deepClone(scopeElement)
+      for (const [field, config] of Object.entries(result)) {
+        if (!config.similarItem) {
+          continue
+        }
+
+        if (config.fixed) {
+          throw new SimilarRationalityError("SimilarItem configuration item does not allow 'fixed'.")
+        }
+        if (config.similarItem === field) {
+          throw new SimilarRationalityError("The SimilarItem configuration of this configuration item cannot be the same as the current field.")
+        }
+        result[field] = Object.assign(deepClone(result[config.similarItem]), config)
+      }
+
+      return result
+    }
+
     function fillKeyValue(field: keyForString<MetaConfig>, config: RunTimeMetaKeyConfig): void {
       // use sort：keyData > defaultValue
 
@@ -222,27 +258,11 @@ export default defineComponent({
     }
 
     // init
-    watch(() => props.keyConfig, (newValue) => {
+    watch(() => props.keyConfig, (newValue: MetaConfig) => {
       if (newValue) {
-        const scopeElement: MetaConfig = newValue
 
-        keyConfigList.value = Object.entries(scopeElement)
-            .map(([field, config]): RunTimeMetaKeyConfig | false => {
-              const {runtimeConfig, fixed} = handleConfigConvert(field, config)
-              fillKeyValue(field, runtimeConfig)
-              if (fixed) {
-                return false
-              }
-              backupKeyConfig[field] = deepClone(runtimeConfig)
-              fillValidate(field, runtimeConfig)
-              fillComponent(field, runtimeConfig)
-              initDependencies(field, config)
-              return runtimeConfig
-            })
-            .filter((item) => item)
-            .sort((v1, v2) => (v1 as RunTimeMetaKeyConfig).order - (v2 as RunTimeMetaKeyConfig).order)
-            // dependency search, 替换对应元数据
-            .map(item => triggerReset(item as RunTimeMetaKeyConfig).data)
+        const genScopeList = fillSimilarItem(newValue)
+        keyConfigList.value = generateConfig(Object.entries(genScopeList))
 
         Object.assign(previousKeyForValues, deepClone(keyForValues.value))
         if (props.debug) {

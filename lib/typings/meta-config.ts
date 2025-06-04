@@ -21,12 +21,14 @@ export interface MetaKeyConfig {
     component: MetaConfigComponent
     order: number
     defaultValue?: any
-    // 最终提交字段的值类型，与其他端的接口相呼应
+    // 表单提交时字段的值类型，与其他端的接口相呼应
     valueType: ComponentValueType
     // 根据组件自定义 final: InputValidator
     validator?: ValidateFunction | InputValidator
     // 仅当fixed为false时submitConvert才有效
     submitConvert?: SubmitConvert
+    // 相似结构配置项，自动获取除fixed为true的配置项与自身叠加。
+    similarItem?: string
     // final: MetaOptionConfig[]
     options?: MetaOptionConfig[] | ((field: keyForString<MetaConfig>) => Promise<MetaOptionConfig[]>)
     readonly dependencies?: MetaConfigDependency[]

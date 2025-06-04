@@ -109,6 +109,13 @@ export class ProcessAbortError extends Error {
 export class ConfigRationalityError extends Error {
     constructor(message: string) {
         super(message)
-        this.name = "ProcessAbortError"
+        this.name = "ConfigRationalityError"
+    }
+}
+
+export class SimilarRationalityError extends Error {
+    constructor(message: string) {
+        super(message)
+        this.name = "SimilarRationalityError"
     }
 }
