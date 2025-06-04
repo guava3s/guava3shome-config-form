@@ -209,6 +209,9 @@ export default defineComponent({
         if (config.similarItem === field) {
           throw new SimilarRationalityError("The SimilarItem configuration of this configuration item cannot be the same as the current field.")
         }
+        if (!result[config.similarItem]) {
+          throw new SimilarRationalityError("There is no field in the current Config object that corresponds to the SimilarItem configuration for this configuration item.")
+        }
         result[field] = Object.assign(deepClone(result[config.similarItem]), config)
       }
 
