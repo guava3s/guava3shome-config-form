@@ -51,7 +51,8 @@ const scopeConfig = {
       display: true,
       required: {
         value: true,
-        message: 'Please input name,Please input namePlease input name,Please input name,Please input name'
+        message: 'Please input name,Please input namePlease input name,Please input name,Please input name',
+        failClass: 'g3-red'
       },
       component: {
         body: () => import('../lib/component/G3Input.vue'),
@@ -299,11 +300,11 @@ async function submit() {
 
 <template>
   <div style="max-width: 600px">
+<!--                  fail-class="g3-read"-->
     <G3ConfigForm :key-config="scopeConfig.scope1"
                   :key-data="testValue"
                   :key-data-effect="testKeyDataEffect"
                   ref="configForm"
-                  debug
                   :immediate="false">
       <template #_FOOTER>
         <button @click="submit">submit</button>
@@ -316,5 +317,9 @@ async function submit() {
 :deep(.g3-config-form-items) {
   display: grid;
   grid-template-columns: 1fr;
+}
+
+:deep(.g3-red) {
+  background: #277d9a;
 }
 </style>

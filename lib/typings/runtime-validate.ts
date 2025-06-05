@@ -1,4 +1,5 @@
 import type {MetaKeyComponentProps} from "./meta-config.ts";
+import type {ClassValue} from "./exhibit-component.ts";
 
 export enum TriggerType {
     blur = 'blur',
@@ -19,6 +20,7 @@ export interface ValidateResult {
 
 export interface ValidateResultParams extends ValidateResult {
     controller?: AbortController | null
+    class?: ClassValue
 }
 
 
@@ -27,6 +29,7 @@ export interface RequiredDescValidator {
     message: string
     // Execute verification immediately after the form is displayed
     immediate?: boolean
+    failClass?: ClassValue
 }
 
 export type SuccessCallback = (value?: unknown) => void
@@ -41,6 +44,7 @@ export interface InputValidator {
     // Execute verification immediately after the form is displayed
     immediate?: boolean
     scope?: TriggerScope
+    failClass?: ClassValue
 }
 
 export interface ProcessValidatePermission {

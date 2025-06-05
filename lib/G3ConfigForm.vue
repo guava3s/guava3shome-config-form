@@ -1,7 +1,7 @@
 <template>
   <div class="g3-config-form-wrapper">
     <div class="g3-config-form-items">
-      <div v-for="(item,index) in keyConfigList" :key="index" class="g3-config-form-props-wrapper">
+      <div v-for="(item,index) in keyConfigList" :key="index" class="g3-config-form-props-wrapper" :class="keyForValidate[item.field].class">
 
         <template v-if="item.display">
           <slot v-if="$slots['TITLE-'+item.field]" :name="'TITLE-'+ item.field" :scope="deepClone(item)"></slot>
@@ -80,6 +80,7 @@ import {
 } from "./util/rational.ts";
 import G3ChildrenComponent from "./component/G3ChildrenComponent.vue";
 import type {DataEffect} from "./typings/runtime-data-effect.ts";
+import type {ClassValue} from "./typings/exhibit-component.ts";
 
 export default defineComponent({
   components: {G3ChildrenComponent},
@@ -131,6 +132,11 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: true
+    },
+    failClass: {
+      type: Object as () => ClassValue,
+      required: false,
+      default: ''
     },
     debug: {
       type: Boolean,

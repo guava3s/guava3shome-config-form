@@ -91,19 +91,23 @@ export default function useComponentValidator({context, props}: InternalContext)
     // required 与 validator 相互独立，required < validator
     function fillValidate(field: keyForString<MetaConfig>, config: RunTimeMetaKeyConfig): void {
         errorDisplayRequired(field, config)
+        const immediateResult = defaultValidate(field, config.required);
         keyForValidate.value[field] = {
-            success: config.required.immediate ? defaultValidate(field, config.required) : true,
+            success: config.required.immediate ? immediateResult : true,
             message: config.required.message,
+            class: immediateResult ? '' : config.required.failClass
         }
     }
 
     async function validateItem(config: RunTimeMetaKeyConfig): Promise<boolean> {
         const kfV = keyForValidate.value[config.field]
+        kfV.class = ''
         const defaultSuccess = defaultValidate(config.field, config.required)
         kfV.success = defaultSuccess
         kfV.controller && kfV.controller.abort()
         if (!defaultSuccess) {
             kfV.message = config.required.message
+            kfV.class = config.required.failClass
             return kfV.success
         }
         if (config.validator && context.keyForValues.value[config.field]) {
@@ -124,10 +128,12 @@ export default function useComponentValidator({context, props}: InternalContext)
                 if (e !== 'ABORT PROMISE') {
                     kfV.success = false
                     kfV.message = e as string
+                    kfV.class = config.validator?.failClass
                 }
             }
             if (kfV.success) {
                 kfV.message = ''
+                kfV.class = ''
             }
         }
 

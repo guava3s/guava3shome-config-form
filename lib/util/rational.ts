@@ -25,13 +25,15 @@ export function configConvert(props: InternalProps) {
                 return {
                     value: required,
                     message,
-                    immediate: props.immediate
+                    immediate: props.immediate,
+                    failClass: props.failClass
                 }
             }
             return {
                 value: required.value ?? true,
                 immediate: required.immediate ?? props.immediate,
                 message: required.message ?? message,
+                failClass: required.failClass || props.failClass
             }
         },
         validator: (field: keyForString<MetaConfig>, validator?: ValidateFunction | InputValidator): Required<InputValidator> | null => {
@@ -42,7 +44,8 @@ export function configConvert(props: InternalProps) {
                         triggerType: TriggerType.change,
                         triggerDelay: 200,
                         immediate: props.immediate,
-                        scope: TriggerScope.single
+                        scope: TriggerScope.single,
+                        failClass: props.failClass
                     }
                 } else {
                     errorValidate(field, validator)
@@ -51,7 +54,8 @@ export function configConvert(props: InternalProps) {
                         triggerType: validator.triggerType ?? TriggerType.change,
                         triggerDelay: validator.triggerDelay ?? (validator.triggerType === TriggerType.change ? 200 : 0),
                         immediate: validator.immediate ?? props.immediate,
-                        scope: validator.scope ?? TriggerScope.single
+                        scope: validator.scope ?? TriggerScope.single,
+                        failClass: validator.failClass || props.failClass
                     }
                 }
             }
