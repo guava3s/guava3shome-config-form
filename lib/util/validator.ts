@@ -101,7 +101,6 @@ export default function useComponentValidator({context, props}: InternalContext)
 
     async function validateItem(config: RunTimeMetaKeyConfig): Promise<boolean> {
         const kfV = keyForValidate.value[config.field]
-        kfV.class = ''
         const defaultSuccess = defaultValidate(config.field, config.required)
         kfV.success = defaultSuccess
         kfV.controller && kfV.controller.abort()
@@ -172,23 +171,15 @@ export default function useComponentValidator({context, props}: InternalContext)
         }
 
         list.forEach(({field}) => keyForValidate.value[field].class = '')
-        await nextTick()
         const result = await Promise.all(list.map(config => {
                 const {validator, field} = config
-
                 return new Promise(async (resolve) => {
                     if (keyForTimer[field]) {
                         clearTimeout(keyForTimer[field])
                     }
-                    if (((validator as InputValidator)?.triggerDelay || 0) <= 0) {
-                        const success = await validateItem(config)
-                        resolve(success)
-                    } else {
-                        keyForTimer[field] = setTimeout(async () => {
-                            const success = await validateItem(config)
-                            resolve(success)
-                        }, (validator as InputValidator)?.triggerDelay)
-                    }
+                    keyForTimer[field] = setTimeout(async () => {
+                        resolve(await validateItem(config))
+                    }, (validator as InputValidator)?.triggerDelay || 0)
                 })
             })
         )

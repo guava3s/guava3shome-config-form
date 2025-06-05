@@ -52,7 +52,6 @@ const scopeConfig = {
       required: {
         value: true,
         message: 'Please input name,Please input namePlease input name,Please input name,Please input name',
-        failClass: 'g3-red'
       },
       component: {
         body: () => import('../lib/component/G3Input.vue'),
@@ -82,25 +81,26 @@ const scopeConfig = {
           success(true)
         }
       },
-      dependencies: [
-        {
-          depField: 'testChildren',
-          depValues: ['1'],
-          depCondition: 'in',
-          reset: {
-            display: false,
-            required: false,
-            defaultValue: 'for test children'
-          }
-        }
-      ]
+      // dependencies: [
+      //   {
+      //     depField: 'testChildren',
+      //     depValues: ['1'],
+      //     depCondition: 'in',
+      //     reset: {
+      //       display: false,
+      //       required: false,
+      //       defaultValue: 'for test children'
+      //     }
+      //   }
+      // ]
     },
     age: {
       title: 'Role Age',
       display: true,
       required: {
         value: true,
-        message: "Please input role age."
+        message: "Please input role age.",
+        failClass: 'g3-red'
       },
       component: {
         body: () => import('../lib/component/G3Input.vue'),
@@ -109,7 +109,10 @@ const scopeConfig = {
           placeholder: 'age',
         }
       },
-      valueType: Number
+      valueType: Number,
+      validator: (value: number, success: SuccessCallback, fail: FailCallback) => {
+        success()
+      }
     },
     nn: {
       similarItem: 'age',
@@ -199,6 +202,23 @@ const scopeConfig = {
           }
         }
       ]
+    },
+    age2: {
+      title: 'Role Age2',
+      display: true,
+      required: {
+        value: true,
+        message: "Please input role age.",
+        failClass: 'g3-red'
+      },
+      component: {
+        body: () => import('../lib/component/G3Input.vue'),
+        bind: {
+          type: 'number',
+          placeholder: 'age',
+        }
+      },
+      valueType: Number
     },
     // test3: {
     //   title: 'Test3',
@@ -300,8 +320,8 @@ async function submit() {
 
 <template>
   <div style="max-width: 600px">
-<!--                  fail-class="g3-read"-->
     <G3ConfigForm :key-config="scopeConfig.scope1"
+                  fail-class="g3-red"
                   :key-data="testValue"
                   :key-data-effect="testKeyDataEffect"
                   ref="configForm"
@@ -321,5 +341,21 @@ async function submit() {
 
 :deep(.g3-red) {
   background: #277d9a;
+  animation-name: shakeX;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+}
+
+@keyframes shakeX {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  10%, 30%, 50%, 70%, 90% {
+    transform: translate3d(-10px, 0, 0);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translate3d(10px, 0, 0);
+  }
 }
 </style>
