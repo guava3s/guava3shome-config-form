@@ -184,7 +184,7 @@ export default defineComponent({
         if (fixed) {
           return false
         }
-        backupKeyConfig[field] = runtimeConfig
+        backupKeyConfig[field] = deepClone(runtimeConfig)
         fillValidate(field, runtimeConfig)
         fillComponent(field, runtimeConfig)
         initDependencies(field, config)
