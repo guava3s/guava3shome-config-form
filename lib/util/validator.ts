@@ -1,4 +1,4 @@
-import {ref} from "vue";
+import {nextTick, ref} from "vue";
 import type {
     keyForString,
     MetaConfig,
@@ -171,8 +171,11 @@ export default function useComponentValidator({context, props}: InternalContext)
             console.debug('[config form] processValidate: start config List=', JSON.parse(JSON.stringify(list)))
         }
 
+        list.forEach(({field}) => keyForValidate.value[field].class = '')
+        await nextTick()
         const result = await Promise.all(list.map(config => {
                 const {validator, field} = config
+
                 return new Promise(async (resolve) => {
                     if (keyForTimer[field]) {
                         clearTimeout(keyForTimer[field])
