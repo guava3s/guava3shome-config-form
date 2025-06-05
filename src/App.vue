@@ -39,7 +39,7 @@ const scopeConfig = {
         {
           depField: 'name',
           depValues: ['hello'],
-          depCondition: 'some',
+          depCondition: 'in',
           reset: {
             display: false
           }
@@ -109,6 +109,10 @@ const scopeConfig = {
         }
       },
       valueType: Number
+    },
+    nn: {
+      similarItem: 'age',
+      title: 'test Nn'
     },
     password: {
       title: 'Test2',
@@ -299,6 +303,7 @@ async function submit() {
                   :key-data="testValue"
                   :key-data-effect="testKeyDataEffect"
                   ref="configForm"
+                  debug
                   :immediate="false">
       <template #_FOOTER>
         <button @click="submit">submit</button>

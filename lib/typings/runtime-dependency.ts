@@ -1,7 +1,7 @@
 import type {MetaConfig, OmitEdMetaKeyConfig, RunTimeMetaKeyConfig} from "./meta-config.ts";
 
 export type DepValues = Array<string | number | boolean>
-export type MetaDependencyCondition = 'some' | 'not_in' | 'all'
+export type MetaDependencyCondition = 'in' | 'not_in' | 'all'
 
 export interface MetaConfigDependency {
     depField: keyof MetaConfig
