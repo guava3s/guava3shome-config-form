@@ -109,7 +109,7 @@ export default function useComponentValidator({context, props}: InternalContext)
             kfV.class = config.required.failClass
             return kfV.success
         }
-        if (config.validator && context.keyForValues.value[config.field]) {
+        if (config.validator) {
             kfV.controller = new AbortController()
             try {
                 await new Promise((resolve, reject) => {
